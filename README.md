@@ -25,17 +25,24 @@ cd panther-builder
 npm install
 npm start
 ```
-- Development server starts at `https://localhost:8080` (or your local IP).
+- Development server starts at `https://localhost:8081` (or your local IP).
 - Open the URL inside the **Meta Quest Browser** on the same Wi-Fi network.
-- Click **"Enter Mixed Reality"** to place the Panther on the floor or tables in the VR Lab with full color passthrough.
+- Click **"Enter AR"** to place the Panther on the floor or tables in the VR Lab with full color passthrough.
 
-### Creating a Production Build
-```bash
-cd panther-builder
-npm run build
-```
-- Outputs optimized static web assets into `panther-builder/dist/`.
-- Serve `dist/` using any SSL-enabled http server (e.g. `npx serve dist -s -p 8080 --ssl`).
+### Live GitHub Pages URL (Headset Ready)
+The WebXR Panther Customizer is deployed directly to GitHub Pages with HTTPS:
+> **Headset URL**: **`https://jcallinan.github.io/Alumni-Weekend-2026/`**
+
+Simply open the **Meta Quest Browser** inside the headset, navigate to that URL, and click **"Enter AR"**!
+
+### Building and Publishing to GitHub Pages
+- **Automatic (CI/CD)**: Any push to `main` triggering `.github/workflows/deploy-pages.yml` automatically tests, builds, and publishes to GitHub Pages.
+- **Manual from Desktop**:
+  ```bash
+  cd panther-builder
+  npm run deploy
+  ```
+  This builds the production bundle and pushes it to the `gh-pages` branch.
 
 ### Automated Testing
 ```bash

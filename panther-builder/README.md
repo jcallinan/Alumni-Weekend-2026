@@ -39,3 +39,40 @@ An interactive Mixed Reality and 3D web experience created for the **University 
    ```bash
    npm run build
    ```
+
+4. Run automated test suite:
+   ```bash
+   npm test
+   ```
+
+## Publishing to GitHub Pages
+
+### Option A: Automatic CI/CD via GitHub Actions (Recommended)
+This repository includes an automated workflow (`.github/workflows/deploy-pages.yml`).
+1. In your GitHub repository, navigate to **Settings** -> **Pages**.
+2. Under **Build and deployment** -> **Source**, select **GitHub Actions**.
+3. Every push to `main` automatically runs tests, builds the WebXR app, and deploys to GitHub Pages:
+   ```
+   https://jcallinan.github.io/Alumni-Weekend-2026/
+   ```
+
+### Option B: Manual Deploy from Desktop
+To build and publish directly from your desktop machine via command line:
+```bash
+npm run deploy
+```
+This builds `dist/` and pushes it directly to the `gh-pages` branch on GitHub. (If using this method, set GitHub Pages Source to **Deploy from a branch** -> `gh-pages` / `(root)`).
+
+---
+
+## Viewing on Meta Quest Headset
+
+1. Put on your **Meta Quest 2 / 3 / Pro** headset in the Marilyn Horne Hall VR Lab.
+2. Open the built-in **Meta Quest Browser**.
+3. Navigate to:
+   ```
+   https://jcallinan.github.io/Alumni-Weekend-2026/
+   ```
+4. Click **"Enter AR"** (or "Enter Mixed Reality").
+5. Look at the VR Lab floor or a table and tap the controller trigger to place the campus Panther statue into your room with full color passthrough.
+6. Use the floating UI panel to switch materials (Campus Bronze, Pitt Gold, Royal Blue) and adjust scale from desk miniature up to life-size monument.
