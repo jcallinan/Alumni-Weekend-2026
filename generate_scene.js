@@ -150,75 +150,110 @@ function makeInstance(prefabName, pos, rotY, scale, parentId) {
 // 5. Generate all 9 holes modular tiles and obstacles
 let courseTilesYaml = '';
 
-// Hole 1: Panther Straightaway (Tee [-10, 0, -10] -> Cup [-10, 0, -6] heading along +Z)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, -10.0], 90);
-courseTilesYaml += makeInstance('Sides', [-10.0, 0.0, -8.0], 90);
-courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, -6.0], 90);
-courseTilesYaml += makeInstance('Flag', [-10.0, 0.0, -6.0], 0);
+// ============================================================
+// ROTATION REFERENCE:
+//  End/Endhole at rotY=0  : open at -X  (ball rolls -X / West)
+//  End/Endhole at rotY=90 : open at -Z  (ball rolls -Z / South)
+//  End/Endhole at rotY=180: open at +X  (ball rolls +X / East)
+//  End/Endhole at rotY=270: open at +Z  (ball rolls +Z / North)
+//  Sides at rotY=0  : rails N/S, open East-West  (+X/-X holes)
+//  Sides at rotY=90 : rails E/W, open North-South (+Z/-Z holes)
+// ============================================================
 
-// Hole 2: Chicane Wave (Tee [-10, 0, -2] -> Cup [-10, 0, 2] heading along +Z)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, -2.0], 90);
-courseTilesYaml += makeInstance('Sides', [-10.0, 0.0, 0.0], 90);
-courseTilesYaml += makeInstance('Bumper', [-10.4, 0.0, 0.0], 0);
-courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, 2.0], 90);
-courseTilesYaml += makeInstance('Flag', [-10.0, 0.0, 2.0], 0);
+// ---- Hole 1: Long Drive (+Z, 4 tiles) ----
+// Straight intro hole — extra-long run to warm up. Ball rolls North (+Z).
+// Tee [-10, 0, -10]  Cup [-10, 0, -4]
+courseTilesYaml += makeInstance('End',    [-10.0, 0.0, -10.0], 270); // open +Z toward Sides
+courseTilesYaml += makeInstance('Sides',  [-10.0, 0.0,  -8.0],  90);
+courseTilesYaml += makeInstance('Sides',  [-10.0, 0.0,  -6.0],  90);
+courseTilesYaml += makeInstance('Endhole',[-10.0, 0.0,  -4.0], 270); // open -Z toward Sides
+courseTilesYaml += makeInstance('Flag',   [-10.0, 0.0,  -4.0],   0);
 
-// Hole 3: Panther Wedge (Tee [-10, 0, 8] -> Cup [-6, 0, 8] heading along +X)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, 8.0], 180);
-courseTilesYaml += makeInstance('Sides', [-8.0, 0.0, 8.0], 0);
-courseTilesYaml += makeInstance('Triangle', [-8.0, 0.0, 7.4], 0);
-courseTilesYaml += makeInstance('Endhole', [-6.0, 0.0, 8.0], 180);
-courseTilesYaml += makeInstance('Flag', [-6.0, 0.0, 8.0], 0);
+// ---- Hole 2: Chicane Slalom (+Z, 3 tiles + staggered bumpers) ----
+// Weave between two offset bumpers. Ball rolls North (+Z).
+// Tee [-10, 0, -1]  Cup [-10, 0, 3]
+courseTilesYaml += makeInstance('End',    [-10.0, 0.0, -1.0], 270);
+courseTilesYaml += makeInstance('Sides',  [-10.0, 0.0,  1.0],  90);
+courseTilesYaml += makeInstance('Bumper', [-10.4, 0.0,  0.5],   0); // left side
+courseTilesYaml += makeInstance('Bumper', [ -9.6, 0.0,  1.5],   0); // right side
+courseTilesYaml += makeInstance('Endhole',[-10.0, 0.0,  3.0], 270);
+courseTilesYaml += makeInstance('Flag',   [-10.0, 0.0,  3.0],   0);
 
-// Hole 4: Gateway Bumpers (Tee [-2, 0, 8] -> Cup [2, 0, 8] heading along +X)
-courseTilesYaml += makeInstance('End', [-2.0, 0.0, 8.0], 180);
-courseTilesYaml += makeInstance('Sides', [0.0, 0.0, 8.0], 0);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 7.6], 0);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 8.4], 0);
-courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, 8.0], 180);
-courseTilesYaml += makeInstance('Flag', [2.0, 0.0, 8.0], 0);
+// ---- Hole 3: Wedge Alley (+X, 4 tiles + Triangle) ----
+// Long straight with a Triangle deflector on the first Sides tile. Ball rolls East (+X).
+// Tee [-12, 0, 9]  Cup [-6, 0, 9]
+courseTilesYaml += makeInstance('End',    [-12.0, 0.0, 9.0], 180); // open +X toward Sides
+courseTilesYaml += makeInstance('Sides',  [-10.0, 0.0, 9.0],   0);
+courseTilesYaml += makeInstance('Triangle',[-10.0, 0.0, 9.55],  0); // nudged to rail edge
+courseTilesYaml += makeInstance('Sides',  [ -8.0, 0.0, 9.0],   0);
+courseTilesYaml += makeInstance('Endhole',[ -6.0, 0.0, 9.0], 180); // open -X toward Sides
+courseTilesYaml += makeInstance('Flag',   [ -6.0, 0.0, 9.0],   0);
 
-// Hole 5: Slalom Chicane (Tee [10, 0, 8] -> Cup [10, 0, 4] heading along -Z)
-courseTilesYaml += makeInstance('End', [10.0, 0.0, 8.0], 270);
-courseTilesYaml += makeInstance('Sides', [10.0, 0.0, 6.0], 90);
-courseTilesYaml += makeInstance('Cross', [10.0, 0.0, 6.0], 45);
-courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, 4.0], 270);
-courseTilesYaml += makeInstance('Flag', [10.0, 0.0, 4.0], 0);
+// ---- Hole 4: Gate Keeper (+X, 3 tiles + narrow bumper gate) ----
+// Thread the needle between two bumpers. Ball rolls East (+X).
+// Tee [-2, 0, 9]  Cup [2, 0, 9]
+courseTilesYaml += makeInstance('End',    [-2.0, 0.0, 9.0], 180);
+courseTilesYaml += makeInstance('Sides',  [ 0.0, 0.0, 9.0],   0);
+courseTilesYaml += makeInstance('Bumper', [ 0.0, 0.0, 8.55],  0); // south gate post
+courseTilesYaml += makeInstance('Bumper', [ 0.0, 0.0, 9.45],  0); // north gate post
+courseTilesYaml += makeInstance('Endhole',[ 2.0, 0.0, 9.0], 180);
+courseTilesYaml += makeInstance('Flag',   [ 2.0, 0.0, 9.0],   0);
 
-// Hole 6: The Zippo Flame (Tee [2, 0, 1] -> Cup [-2, 0, 1] heading along -X)
-// Plus giant historic Bradford Zippo lighter monument standing proudly beside the fairway!
-courseTilesYaml += makeInstance('End', [2.0, 0.0, 1.0], 0);
-courseTilesYaml += makeInstance('Sides', [0.0, 0.0, 1.0], 0);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 0.6], 0);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 1.4], 0);
-courseTilesYaml += makeInstance('Endhole', [-2.0, 0.0, 1.0], 0);
-courseTilesYaml += makeInstance('Flag', [-2.0, 0.0, 1.0], 0);
-courseTilesYaml += makeInstance('Zippo', [0.0, 0.0, 3.2], 180, [1.8, 1.8, 1.8], 0);
+// ---- Hole 5: Cross Roads (-Z, 4 tiles + Cross obstacle) ----
+// Long run South through the X-shaped blocker. Ball rolls South (-Z).
+// Tee [10, 0, 9]  Cup [10, 0, 3]
+courseTilesYaml += makeInstance('End',    [10.0, 0.0, 9.0],  90); // open -Z toward Sides
+courseTilesYaml += makeInstance('Sides',  [10.0, 0.0, 7.0],  90);
+courseTilesYaml += makeInstance('Cross',  [10.0, 0.0, 7.0],  45); // sits on Sides tile
+courseTilesYaml += makeInstance('Sides',  [10.0, 0.0, 5.0],  90);
+courseTilesYaml += makeInstance('Endhole',[10.0, 0.0, 3.0],  90); // open +Z toward Sides
+courseTilesYaml += makeInstance('Flag',   [10.0, 0.0, 3.0],   0);
 
-// Hole 7: Twin Islands (Tee [-6, 0, -4] -> Cup [-2, 0, -4] heading along +X)
-courseTilesYaml += makeInstance('End', [-6.0, 0.0, -4.0], 180);
-courseTilesYaml += makeInstance('Sides', [-4.0, 0.0, -4.0], 0);
-courseTilesYaml += makeInstance('Bumper', [-4.0, 0.0, -4.4], 0);
-courseTilesYaml += makeInstance('Bumper', [-4.0, 0.0, -3.6], 0);
-courseTilesYaml += makeInstance('Endhole', [-2.0, 0.0, -4.0], 180);
-courseTilesYaml += makeInstance('Flag', [-2.0, 0.0, -4.0], 0);
+// ---- Hole 6: The Zippo Flame (-X, 3 tiles + bumpers + Zippo monument) ----
+// Historic Bradford Zippo Lighter monument towers beside the fairway.
+// Ball rolls West (-X). Tee [4, 0, 1]  Cup [0, 0, 1]
+courseTilesYaml += makeInstance('End',    [ 4.0, 0.0, 1.0],   0); // open -X toward Sides
+courseTilesYaml += makeInstance('Sides',  [ 2.0, 0.0, 1.0],   0);
+courseTilesYaml += makeInstance('Bumper', [ 2.0, 0.0, 0.55],  0);
+courseTilesYaml += makeInstance('Bumper', [ 2.0, 0.0, 1.45],  0);
+courseTilesYaml += makeInstance('Endhole',[ 0.0, 0.0, 1.0],   0); // open +X toward Sides
+courseTilesYaml += makeInstance('Flag',   [ 0.0, 0.0, 1.0],   0);
+// Iconic Bradford Zippo Lighter — stands guard north of the fairway!
+courseTilesYaml += makeInstance('Zippo',  [ 2.0, 0.0, 3.2], 180, [1.8, 1.8, 1.8], 0);
 
-// Hole 8: The Windmill Hazard (Tee [-2, 0, -10] -> Cup [2, 0, -10] heading along +X)
-courseTilesYaml += makeInstance('End', [-2.0, 0.0, -10.0], 180);
-courseTilesYaml += makeInstance('Sides', [0.0, 0.0, -10.0], 0);
-courseTilesYaml += makeInstance('WindMill', [0.0, 0.0, -10.0], 90);
-courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, -10.0], 180);
-courseTilesYaml += makeInstance('Flag', [2.0, 0.0, -10.0], 0);
+// ---- Hole 7: Bumper Maze (+X, 4 tiles + staggered bumpers) ----
+// Two bumpers offset on alternating sides create a zigzag challenge. Ball rolls East (+X).
+// Tee [-8, 0, -4]  Cup [-2, 0, -4]
+courseTilesYaml += makeInstance('End',    [-8.0, 0.0, -4.0], 180);
+courseTilesYaml += makeInstance('Sides',  [-6.0, 0.0, -4.0],   0);
+courseTilesYaml += makeInstance('Bumper', [-6.0, 0.0, -4.5],   0); // south-side
+courseTilesYaml += makeInstance('Sides',  [-4.0, 0.0, -4.0],   0);
+courseTilesYaml += makeInstance('Bumper', [-4.0, 0.0, -3.5],   0); // north-side
+courseTilesYaml += makeInstance('Endhole',[-2.0, 0.0, -4.0], 180);
+courseTilesYaml += makeInstance('Flag',   [-2.0, 0.0, -4.0],   0);
 
-// Hole 9: Grand Finale: Panther's Roar! (Tee [10, 0, -2] -> Cup [10, 0, -6] heading along -Z)
-// Plus authentic Pitt Panther Statue monument overlooking the championship green!
-courseTilesYaml += makeInstance('End', [10.0, 0.0, -2.0], 270);
-courseTilesYaml += makeInstance('Sides', [10.0, 0.0, -4.0], 90);
-courseTilesYaml += makeInstance('Bumper', [9.6, 0.0, -4.0], 0);
-courseTilesYaml += makeInstance('Bumper', [10.4, 0.0, -4.0], 0);
-courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, -6.0], 270);
-courseTilesYaml += makeInstance('Flag', [10.0, 0.0, -6.0], 0);
-courseTilesYaml += makeInstance('Panther', [12.2, 0.0, -6.0], -90, [1.0, 1.0, 1.0], 0);
+// ---- Hole 8: Windmill Gauntlet (+X, 4 tiles + WindMill) ----
+// Two straight sections — time your shot through the spinning blades! Ball rolls East (+X).
+// Tee [-4, 0, -10]  Cup [2, 0, -10]
+courseTilesYaml += makeInstance('End',    [-4.0, 0.0, -10.0], 180);
+courseTilesYaml += makeInstance('Sides',  [-2.0, 0.0, -10.0],   0);
+courseTilesYaml += makeInstance('Sides',  [ 0.0, 0.0, -10.0],   0);
+courseTilesYaml += makeInstance('WindMill',[ 0.0, 0.0, -10.0],  90); // sits on Sides tile
+courseTilesYaml += makeInstance('Endhole',[ 2.0, 0.0, -10.0], 180);
+courseTilesYaml += makeInstance('Flag',   [ 2.0, 0.0, -10.0],   0);
+
+// ---- Hole 9: Grand Finale: Panther's Roar (-Z, 4 tiles + Panther Statue + bumpers) ----
+// Championship finale — long run South past the Pitt Panther guardian. Ball rolls South (-Z).
+// Tee [10, 0, -1]  Cup [10, 0, -7]
+courseTilesYaml += makeInstance('End',    [10.0, 0.0, -1.0],  90); // open -Z toward Sides
+courseTilesYaml += makeInstance('Sides',  [10.0, 0.0, -3.0],  90);
+courseTilesYaml += makeInstance('Bumper', [ 9.5, 0.0, -3.0],   0); // west bumper
+courseTilesYaml += makeInstance('Sides',  [10.0, 0.0, -5.0],  90);
+courseTilesYaml += makeInstance('Bumper', [10.5, 0.0, -5.0],   0); // east bumper (zigzag)
+courseTilesYaml += makeInstance('Endhole',[10.0, 0.0, -7.0],  90); // open +Z toward Sides
+courseTilesYaml += makeInstance('Flag',   [10.0, 0.0, -7.0],   0);
+// Authentic Pitt Panther Statue — guardian of the championship green!
+courseTilesYaml += makeInstance('Panther',[12.2, 0.0, -7.0],  -90, [1.0, 1.0, 1.0], 0);
 
 // 6. Floor TeleportArea (Allows VR teleportation across the entire 30m x 30m hall)
 const floorTeleportYaml = 
@@ -777,75 +812,75 @@ const golfPutterYaml =
 const HOLES_DATA = [
   {
     num: 1,
-    name: "Panther Straightaway",
+    name: "Long Drive",
     par: 2,
-    cupPos: [-10.0, 0.0, -6.0],
+    cupPos: [-10.0, 0.0, -4.0],
     teePos: [-10.0, 0.0, -10.0],
     playerPos: [-10.8, 0.0, -10.0]
   },
   {
     num: 2,
-    name: "Chicane Wave",
+    name: "Chicane Slalom",
     par: 3,
-    cupPos: [-10.0, 0.0, 2.0],
-    teePos: [-10.0, 0.0, -2.0],
-    playerPos: [-10.8, 0.0, -2.0]
+    cupPos: [-10.0, 0.0, 3.0],
+    teePos: [-10.0, 0.0, -1.0],
+    playerPos: [-10.8, 0.0, -1.0]
   },
   {
     num: 3,
-    name: "Panther Wedge",
+    name: "Wedge Alley",
     par: 3,
-    cupPos: [-6.0, 0.0, 8.0],
-    teePos: [-10.0, 0.0, 8.0],
-    playerPos: [-10.0, 0.0, 7.2]
+    cupPos: [-6.0, 0.0, 9.0],
+    teePos: [-12.0, 0.0, 9.0],
+    playerPos: [-12.0, 0.0, 9.8]
   },
   {
     num: 4,
-    name: "Gateway Bumpers",
+    name: "Gate Keeper",
     par: 2,
-    cupPos: [2.0, 0.0, 8.0],
-    teePos: [-2.0, 0.0, 8.0],
-    playerPos: [-2.0, 0.0, 7.2]
+    cupPos: [2.0, 0.0, 9.0],
+    teePos: [-2.0, 0.0, 9.0],
+    playerPos: [-2.0, 0.0, 9.8]
   },
   {
     num: 5,
-    name: "Slalom Chicane",
+    name: "Cross Roads",
     par: 3,
-    cupPos: [10.0, 0.0, 4.0],
-    teePos: [10.0, 0.0, 8.0],
-    playerPos: [10.8, 0.0, 8.0]
+    cupPos: [10.0, 0.0, 3.0],
+    teePos: [10.0, 0.0, 9.0],
+    playerPos: [10.8, 0.0, 9.0]
   },
   {
     num: 6,
     name: "The Zippo Flame",
     par: 3,
-    cupPos: [-2.0, 0.0, 1.0],
-    teePos: [2.0, 0.0, 1.0],
-    playerPos: [2.0, 0.0, 1.8]
+    cupPos: [0.0, 0.0, 1.0],
+    teePos: [4.0, 0.0, 1.0],
+    playerPos: [4.0, 0.0, 1.8]
   },
   {
     num: 7,
-    name: "Twin Islands",
+    name: "Bumper Maze",
     par: 3,
     cupPos: [-2.0, 0.0, -4.0],
-    teePos: [-6.0, 0.0, -4.0],
-    playerPos: [-6.0, 0.0, -4.8]
+    teePos: [-8.0, 0.0, -4.0],
+    playerPos: [-8.0, 0.0, -4.8]
   },
   {
     num: 8,
-    name: "The Windmill Hazard",
+    name: "Windmill Gauntlet",
     par: 3,
     cupPos: [2.0, 0.0, -10.0],
-    teePos: [-2.0, 0.0, -10.0],
-    playerPos: [-2.0, 0.0, -10.8]
+    teePos: [-4.0, 0.0, -10.0],
+    playerPos: [-4.0, 0.0, -10.8]
   },
   {
     num: 9,
     name: "Grand Finale: Panther's Roar",
     par: 4,
-    cupPos: [10.0, 0.0, -6.0],
-    teePos: [10.0, 0.0, -2.0],
-    playerPos: [10.8, 0.0, -2.0]
+    cupPos: [10.0, 0.0, -7.0],
+    teePos: [10.0, 0.0, -1.0],
+    playerPos: [10.8, 0.0, -1.0]
   }
 ];
 
