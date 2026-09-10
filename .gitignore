@@ -104,3 +104,21 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# GolfVR Library and temp
+GolfVR/GolfVR/[Ll]ibrary/
+GolfVR/GolfVR/[Tt]emp/
+GolfVR/GolfVR/[Oo]bj/
+GolfVR/GolfVR/[Bb]uild/
+GolfVR/GolfVR/[Bb]uilds/
+GolfVR/GolfVR/[Ll]ogs/
+GolfVR/GolfVR/[Uu]ser[Ss]ettings/
+GolfVR/GolfVR/.vs/
+GolfVR/GolfVR/*.csproj
+GolfVR/GolfVR/*.sln
+GolfVR/GolfVR/*.unityproj
+
+# Panther builder
+panther-builder/node_modules/
+panther-builder/dist/
+panther-builder/build/
