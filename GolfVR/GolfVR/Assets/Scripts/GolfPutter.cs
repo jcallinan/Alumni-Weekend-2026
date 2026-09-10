@@ -41,6 +41,25 @@ namespace GolfVR
         public AudioSource audioSource;
         public AudioClip customHitClip;
 
+        [Header("Generated Visual Mesh")]
+        [Tooltip("Build simple shaft/grip/head meshes at runtime if the putter has no visible MeshRenderer yet")]
+        public bool autoGenerateVisuals = true;
+
+        [Tooltip("Radius of the generated shaft, in meters")]
+        public float shaftRadius = 0.008f;
+
+        [Tooltip("Radius of the generated grip wrap, in meters")]
+        public float gripRadius = 0.014f;
+
+        [Tooltip("Length of the generated grip wrap, in meters")]
+        public float gripLength = 0.22f;
+
+        [Tooltip("Color of the generated shaft and club head")]
+        public Color shaftColor = new Color(0.75f, 0.75f, 0.78f);
+
+        [Tooltip("Color of the generated grip wrap")]
+        public Color gripColor = new Color(0.08f, 0.08f, 0.08f);
+
         // Velocity tracking for club head
         private Vector3 _lastHeadPosition;
         private Vector3 _headVelocity;
@@ -78,6 +97,7 @@ namespace GolfVR
             }
 
             GeneratePuttAudioClip();
+            BuildVisualsIfMissing();
         }
 
         private void Start()
@@ -203,6 +223,71 @@ namespace GolfVR
 
             _generatedHitClip = AudioClip.Create("PuttStrikeProcedural", numSamples, 1, sampleRate, false);
             _generatedHitClip.SetData(samples, 0);
+        }
+
+        /// <summary>
+        /// Builds a simple shaft/grip/head mesh at runtime so the putter is visible in VR.
+        /// Skipped if a MeshRenderer already exists (e.g. a real model was added to the prefab).
+        /// </summary>
+        private void BuildVisualsIfMissing()
+        {
+            if (!autoGenerateVisuals) return;
+            if (GetComponentInChildren<MeshRenderer>() != null) return;
+
+            Material shaftMat = new Material(Shader.Find("Standard"));
+            shaftMat.color = shaftColor;
+            shaftMat.SetFloat("_Metallic", 0.8f);
+            shaftMat.SetFloat("_Glossiness", 0.6f);
+
+            Material gripMat = new Material(Shader.Find("Standard"));
+            gripMat.color = gripColor;
+            gripMat.SetFloat("_Metallic", 0f);
+            gripMat.SetFloat("_Glossiness", 0.2f);
+
+            // Shaft runs the full length from the grip point down to the club head
+            CreateVisualBar("ShaftVisual", gripPoint.localPosition, clubHead.localPosition, shaftRadius, shaftMat);
+
+            // Grip wrap covers the top portion of the shaft, starting at the hand attach point
+            Vector3 shaftDir = (clubHead.localPosition - gripPoint.localPosition).normalized;
+            if (shaftDir.sqrMagnitude > 0.0001f)
+            {
+                Vector3 gripTop = gripPoint.localPosition;
+                Vector3 gripBottom = gripTop + shaftDir * gripLength;
+                CreateVisualBar("GripVisual", gripTop, gripBottom, gripRadius, gripMat);
+            }
+
+            // Club head: simple mallet-style block matching the collider footprint
+            BoxCollider headCollider = clubHead.GetComponent<BoxCollider>();
+            Vector3 headSize = headCollider != null ? headCollider.size : new Vector3(0.12f, 0.04f, 0.035f);
+            Vector3 headCenter = headCollider != null ? headCollider.center : Vector3.zero;
+
+            GameObject headVisual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            headVisual.name = "ClubHeadVisual";
+            Destroy(headVisual.GetComponent<Collider>());
+            headVisual.transform.SetParent(clubHead, false);
+            headVisual.transform.localPosition = headCenter;
+            headVisual.transform.localRotation = Quaternion.identity;
+            headVisual.transform.localScale = headSize;
+            headVisual.GetComponent<MeshRenderer>().sharedMaterial = shaftMat;
+        }
+
+        /// <summary>
+        /// Creates a thin cylinder between two points local to the putter root, with no collider.
+        /// </summary>
+        private void CreateVisualBar(string name, Vector3 localA, Vector3 localB, float radius, Material mat)
+        {
+            Vector3 delta = localB - localA;
+            float length = delta.magnitude;
+            if (length < 0.001f) return;
+
+            GameObject bar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            bar.name = name;
+            Destroy(bar.GetComponent<Collider>());
+            bar.transform.SetParent(transform, false);
+            bar.transform.localPosition = (localA + localB) * 0.5f;
+            bar.transform.localRotation = Quaternion.FromToRotation(Vector3.up, delta.normalized);
+            bar.transform.localScale = new Vector3(radius * 2f, length * 0.5f, radius * 2f);
+            bar.GetComponent<MeshRenderer>().sharedMaterial = mat;
         }
 
         /// <summary>
