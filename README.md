@@ -48,44 +48,69 @@ Runs unit tests validating scale calculations, boundary limits, and material pre
 
 ## Project 2: GolfVR - 9-Hole Championship Mini Golf (`GolfVR/GolfVR/`)
 
-A 9-hole miniature golf course in Unity built with the *Stylized Mini Golf* asset pack and SteamVR, featuring the authentic campus Panther statue monument on Hole 9.
+A complete 9-hole miniature golf course in Unity built with the *Stylized Mini Golf* asset kit and SteamVR. All 9 holes are grounded flush on the indoor hall floor (`Y = 0.0`) with borders, realistic colliders, audio effects, and VR teleportation.
 
-### Course Holes (Par 26)
-1. **Hole 1**: Bradford Welcome (Par 2) - Straight intro fairway.
-2. **Hole 2**: Blaisdell Dogleg (Par 3) - Bank turns and rail rebounds.
-3. **Hole 3**: Tunungwant Hill (Par 3) - Incline with crest roll-down.
-4. **Hole 4**: Allegheny Loop (Par 3) - Spiral tunnel and momentum curves.
-5. **Hole 5**: Panther's Leap (Par 3) - Narrow bridge over water.
-6. **Hole 6**: The Zippo Flame (features historic Bradford Zippo Lighter Monument) (Par 3) - Double chicane with slalom bumpers.
-7. **Hole 7**: Kessel Ridge (Par 3) - Elevated ridge spine with side sand traps.
-8. **Hole 8**: Windmill Challenge (Par 3) - Rotating obstacle blades.
-9. **Hole 9**: Championship Panther's Den (Par 3) - Multi-tier green surrounding the authentic campus Panther statue monument.
+### Complete 9-Hole Course Card (Par 26)
+| Hole | Name | Par | Features & Obstacles | Coordinates |
+| :--- | :--- | :---: | :--- | :--- |
+| **1** | **Panther Straightaway** | 2 | Clean intro straightaway with side containment bumpers | Tee `[-10, 0, 10]`, Cup `[-6, 0, 10]` |
+| **2** | **Chicane Wave** | 3 | S-curve fairway with banked edge rails | Tee `[-10, 0, 6]`, Cup `[-6, 0, 6]` |
+| **3** | **Panther Wedge** | 3 | Triangular wedge obstacle splitting the fairway | Tee `[-10, 0, 2]`, Cup `[-6, 0, 2]` |
+| **4** | **Gateway Bumpers** | 3 | Dual twin bumper slalom gates | Tee `[-2, 0, 6]`, Cup `[2, 0, 6]` |
+| **5** | **Slalom Chicane** | 3 | Cross obstacle puzzle requiring bank rebound | Tee `[6, 0, 6]`, Cup `[10, 0, 6]` |
+| **6** | **The Zippo Flame** | 3 | **Historic Bradford Zippo Lighter Monument** + Bumper pin hazard | Tee `[-2, 0, 0]`, Cup `[2, 0, 0]` |
+| **7** | **Dogleg Corner** | 3 | 90-degree dogleg turn with banked corner tile | Tee `[6, 0, 2]`, Cup `[8, 0, -2]` |
+| **8** | **The Windmill Hazard** | 3 | Rotating animated windmill blades obstacle | Tee `[-2, 0, -6]`, Cup `[2, 0, -6]` |
+| **9** | **Grand Finale: Panther's Roar** | 4 | **Authentic Pitt Panther Statue Monument** centerpiece + L-wrap green | Tee `[6, 0, -6]`, Cup `[10, 0, -10]` |
 
-### Prerequisites
-- Unity Editor: `6000.3.20f1` or `2022.3.62f3 LTS`.
-- SteamVR running on the VR Lab Workstation.
-- Meta Quest 2 / 3 / Pro (via Quest Link or AirLink), or Valve Index / HTC Vive.
+### Lab Hardware & Software Prerequisites
+- **Unity Editor**: `2022.3.62f3 LTS` (recommended) or `6000.3.20f1`.
+- **SteamVR**: Installed and running on the VR workstation.
+- **Headset**: Meta Quest 2 / 3 / Pro (via Quest Link cable or AirLink), or Valve Index / HTC Vive Cosmos.
 
-### Opening & Running in Editor
-1. Open **Unity Hub** -> Add -> Select `GolfVR/GolfVR`.
-2. Open the project.
-3. In the Project window, open:
+### Opening & Testing in the Unity Editor
+1. Launch **Unity Hub**.
+2. Click **Add** -> **Add project from disk** -> Navigate to `c:\GitHub\Alumni-Weekend-2026\Alumni-Weekend-2026\GolfVR\GolfVR`.
+3. Open the project using Unity `2022.3` LTS.
+4. In the Project window, double-click:
    ```
    Assets/Scenes/MiniGolf_AlumniCourse.unity
    ```
-4. Start **SteamVR** and put on your VR headset.
-5. Click **Play** at the top of the Unity Editor.
+5. Ensure **SteamVR** is running and your VR headset status shows green (Ready).
+6. Click the **Play** button at the top of the Unity Editor.
+7. Grab the putter with your VR controller trigger and begin putting!
 
-### Making a Standalone PC VR Build
-```bash
-1. In Unity, File -> Build Settings...
-2. Ensure Assets/Scenes/MiniGolf_AlumniCourse.unity is checked at Index 0.
-2. Select Platform: Windows, Mac, Linux (Target: Windows, x86_64).
-4. Click Build and Run -> choose folder (e.g. GolfVR/Build/).
-```
+### Building a Standalone Windows VR Executable (.exe)
+To create a high-performance standalone build that runs without launching the Unity Editor:
+1. In Unity, go to **File** -> **Build Settings...**
+2. In **Scenes In Build**, verify `Assets/Scenes/MiniGolf_AlumniCourse.unity` is listed and checked at Index 0.
+3. In **Platform**, select **Windows, Mac, Linux** (Architecture: `Intel 64-bit`).
+4. Click **Build and Run** (or **Build**).
+5. Choose or create a folder: `GolfVR/Builds/AlumniMiniGolf/`.
+6. Unity compiles the standalone player `AlumniMiniGolf.exe`.
+7. Put on the VR headset, launch `AlumniMiniGolf.exe`, and play.
 
-### Automated Course Logic Verification
+### Automated Logic & Physics Testing
+To run the automated course simulation suite (validating cup detection, scoring terms, stroke counters, audio synthesis, and putter physics):
 ```bash
 python test_golf_logic.py
-``
-Validates cup-trigger collisions, stroke tracking, out-of-bounds respawns, and par-tallying across all 9 holes.
+```
+Expected output:
+```
+Running GolfVR test suite...
+[PASS] test_score_terms passed
+[PASS] test_nine_hole_round passed (Total strokes: 26, Par: 26, Diff: 0)
+[PASS] test_physics_impulse passed
+[PASS] test_fanfare_audio_synthesis passed
+[PASS] test_putt_audio_synthesis passed
+ALL TESTS PASSED SUCCESSFULLY!
+```
+
+---
+
+## Troubleshooting in the VR Lab
+
+- **SteamVR shows "Headset Not Detected"**: Unplug and replug the USB-C Link cable, confirm Quest Link is enabled inside the Quest headset settings, and restart SteamVR.
+- **Controller Putter Not Grabbing**: Point controller at the putter handle and squeeze the grip or trigger button.
+- **Teleportation**: Use the thumbstick forward/arc teleportation to jump across the hall and position yourself at any hole's tee area.
+- **Lighting / Shader Warnings**: Clean baked GI configuration with version-compatible LightingData reference ensures clean loading with zero console errors.
