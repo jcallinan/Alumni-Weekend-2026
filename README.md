@@ -56,7 +56,7 @@ A 9-hole miniature golf course in Unity built with the *Stylized Mini Golf* asse
 3. **Hole 3**: Tunungwant Hill (Par 3) - Incline with crest roll-down.
 4. **Hole 4**: Allegheny Loop (Par 3) - Spiral tunnel and momentum curves.
 5. **Hole 5**: Panther's Leap (Par 3) - Narrow bridge over water.
-6. **Hole 6**: Marilyn Horne S-Curve (Par 3) - Double chicane with slalom bumpers.
+6. **Hole 6**: The Zippo Flame (features historic Bradford Zippo Lighter Monument) (Par 3) - Double chicane with slalom bumpers.
 7. **Hole 7**: Kessel Ridge (Par 3) - Elevated ridge spine with side sand traps.
 8. **Hole 8**: Windmill Challenge (Par 3) - Rotating obstacle blades.
 9. **Hole 9**: Championship Panther's Den (Par 3) - Multi-tier green surrounding the authentic campus Panther statue monument.

@@ -8321,7 +8321,7 @@ Transform:
   m_Father: {fileID: 920005001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 
-# --- Hole 6: The Pipe Tunnel (Par 3) ---
+# --- Hole 6: The Zippo Flame (Par 3) ---
 --- !u!1 &920006000
 GameObject:
   m_ObjectHideFlags: 0
@@ -8334,7 +8334,7 @@ GameObject:
   - component: {fileID: 920006002}
   - component: {fileID: 920006003}
   m_Layer: 0
-  m_Name: Hole6_ThePipeTunnel
+  m_Name: Hole6_ZippoMonument
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8388,7 +8388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holeNumber: 6
-  holeName: The Pipe Tunnel
+  holeName: The Zippo Flame
   par: 3
   teePoint: {fileID: 920006011}
   playerTeeLocation: {fileID: 920006021}
@@ -9057,3 +9057,54 @@ MonoBehaviour:
   scoreboard: {fileID: 960000102}
   holeTransitionDelay: 3.5
   globalAudioSource: {fileID: 0}
+
+# --- Bradford Historic Zippo Lighter Monument ---
+--- !u!1001 &950000200
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_RootOrder
+      value: 98
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -4.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.3826834
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9238795
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 447954, guid: 7b9148d234a948e28402c589b218412a, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7b9148d234a948e28402c589b218412a, type: 3}
