@@ -149,76 +149,75 @@ function makeInstance(prefabName, pos, rotY, scale, parentId) {
 // 5. Generate all 9 holes modular tiles and obstacles
 let courseTilesYaml = '';
 
-// Hole 1: Panther Straightaway (End -> Sides -> Endhole along Z)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, -10.0], 0);
+// Hole 1: Panther Straightaway (Tee [-10, 0, -10] -> Cup [-10, 0, -6] heading along +Z)
+courseTilesYaml += makeInstance('End', [-10.0, 0.0, -10.0], 90);
 courseTilesYaml += makeInstance('Sides', [-10.0, 0.0, -8.0], 0);
-courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, -6.0], 0);
+courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, -6.0], 90);
 courseTilesYaml += makeInstance('Flag', [-10.0, 0.0, -6.0], 0);
 
-// Hole 2: Ramp Hurdle (End -> Sides with Ramp -> Endhole)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, -2.0], 0);
+// Hole 2: Chicane Wave (Tee [-10, 0, -2] -> Cup [-10, 0, 2] heading along +Z)
+courseTilesYaml += makeInstance('End', [-10.0, 0.0, -2.0], 90);
 courseTilesYaml += makeInstance('Sides', [-10.0, 0.0, 0.0], 0);
-courseTilesYaml += makeInstance('Ramp', [-10.0, 0.0, 0.0], 0);
-courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, 2.0], 0);
+courseTilesYaml += makeInstance('Bumper', [-10.4, 0.0, 0.0], 0);
+courseTilesYaml += makeInstance('Endhole', [-10.0, 0.0, 2.0], 90);
 courseTilesYaml += makeInstance('Flag', [-10.0, 0.0, 2.0], 0);
 
-// Hole 3: Panther Wedge (End -> Sides with Triangle -> Endhole along X)
-courseTilesYaml += makeInstance('End', [-10.0, 0.0, 6.0], 90);
+// Hole 3: Panther Wedge (Tee [-10, 0, 6] -> Cup [-6, 0, 6] heading along +X)
+courseTilesYaml += makeInstance('End', [-10.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Sides', [-8.0, 0.0, 6.0], 90);
 courseTilesYaml += makeInstance('Triangle', [-8.0, 0.0, 6.0], 90);
-courseTilesYaml += makeInstance('Endhole', [-6.0, 0.0, 6.0], 90);
+courseTilesYaml += makeInstance('Endhole', [-6.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Flag', [-6.0, 0.0, 6.0], 0);
 
-// Hole 4: Gateway Bumpers (End -> Sides with 2 Bumpers -> Endhole along X)
-courseTilesYaml += makeInstance('End', [-2.0, 0.0, 6.0], 90);
+// Hole 4: Gateway Bumpers (Tee [-2, 0, 6] -> Cup [2, 0, 6] heading along +X)
+courseTilesYaml += makeInstance('End', [-2.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Sides', [0.0, 0.0, 6.0], 90);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 5.6], 0);
-courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 6.4], 0);
-courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, 6.0], 90);
+courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 5.5], 0);
+courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 6.5], 0);
+courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Flag', [2.0, 0.0, 6.0], 0);
 
-// Hole 5: Slalom Chicane (End -> Sides with Cross -> Endhole along X)
-courseTilesYaml += makeInstance('End', [6.0, 0.0, 6.0], 90);
+// Hole 5: Slalom Chicane (Tee [6, 0, 6] -> Cup [10, 0, 6] heading along +X)
+courseTilesYaml += makeInstance('End', [6.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Sides', [8.0, 0.0, 6.0], 90);
-courseTilesYaml += makeInstance('Cross', [8.0, 0.0, 6.0], 0);
-courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, 6.0], 90);
+courseTilesYaml += makeInstance('Cross', [8.0, 0.0, 6.0], 45);
+courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, 6.0], 180);
 courseTilesYaml += makeInstance('Flag', [10.0, 0.0, 6.0], 0);
 
-// Hole 6: The Zippo Flame (Centerpiece! End -> Sides with Bowling Pin Pins -> Endhole)
-// Plus giant Zippo lighter monument standing proudly beside the green!
-courseTilesYaml += makeInstance('End', [-2.0, 0.0, 0.0], 90);
+// Hole 6: The Zippo Flame (Tee [-2, 0, 0] -> Cup [2, 0, 0] heading along +X)
+// Plus giant Bradford Zippo lighter monument standing proudly beside the green!
+courseTilesYaml += makeInstance('End', [-2.0, 0.0, 0.0], 180);
 courseTilesYaml += makeInstance('Sides', [0.0, 0.0, 0.0], 90);
-courseTilesYaml += makeInstance('Bumper', [-0.3, 0.0, 0.0], 0);
-courseTilesYaml += makeInstance('Bumper', [0.2, 0.0, -0.3], 0);
-courseTilesYaml += makeInstance('Bumper', [0.2, 0.0, 0.3], 0);
-courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, 0.0], 90);
+courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, -0.45], 0);
+courseTilesYaml += makeInstance('Bumper', [0.0, 0.0, 0.45], 0);
+courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, 0.0], 180);
 courseTilesYaml += makeInstance('Flag', [2.0, 0.0, 0.0], 0);
 // Historic Bradford Zippo Lighter Monument (scale 1.8x, rotated facing tee)
-courseTilesYaml += makeInstance('Zippo', [3.5, 0.0, 1.6], -45, 0);
+courseTilesYaml += makeInstance('Zippo', [3.6, 0.0, 1.8], -45, 0);
 
-// Hole 7: Dogleg Corner (End -> Sides -> Corner -> Endhole)
-courseTilesYaml += makeInstance('End', [6.0, 0.0, 2.0], 180);
-courseTilesYaml += makeInstance('Sides', [6.0, 0.0, 0.0], 180);
-courseTilesYaml += makeInstance('Corner', [6.0, 0.0, -2.0], 180);
-courseTilesYaml += makeInstance('Endhole', [8.0, 0.0, -2.0], 90);
+// Hole 7: Dogleg Corner (Tee [6, 0, 2] heading -Z, turning +X to Cup [8, 0, -2])
+courseTilesYaml += makeInstance('End', [6.0, 0.0, 2.0], 270);
+courseTilesYaml += makeInstance('Sides', [6.0, 0.0, 0.0], 0);
+courseTilesYaml += makeInstance('Corner', [6.0, 0.0, -2.0], 0);
+courseTilesYaml += makeInstance('Endhole', [8.0, 0.0, -2.0], 180);
 courseTilesYaml += makeInstance('Flag', [8.0, 0.0, -2.0], 0);
 
-// Hole 8: The Windmill (End -> Sides with Animated Windmill -> Endhole along X)
-courseTilesYaml += makeInstance('End', [-2.0, 0.0, -6.0], 90);
+// Hole 8: The Windmill (Tee [-2, 0, -6] -> Cup [2, 0, -6] heading along +X)
+courseTilesYaml += makeInstance('End', [-2.0, 0.0, -6.0], 180);
 courseTilesYaml += makeInstance('Sides', [0.0, 0.0, -6.0], 90);
-courseTilesYaml += makeInstance('WindMill', [0.0, 0.0, -6.0], 0);
-courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, -6.0], 90);
+courseTilesYaml += makeInstance('WindMill', [0.0, 0.0, -6.0], 90);
+courseTilesYaml += makeInstance('Endhole', [2.0, 0.0, -6.0], 180);
 courseTilesYaml += makeInstance('Flag', [2.0, 0.0, -6.0], 0);
 
-// Hole 9: Grand Finale - Panther's Roar! (L-shape around Authentic Pitt Panther Statue)
-courseTilesYaml += makeInstance('End', [6.0, 0.0, -6.0], 180);
-courseTilesYaml += makeInstance('Sides', [6.0, 0.0, -8.0], 180);
-courseTilesYaml += makeInstance('Corner', [6.0, 0.0, -10.0], 180);
+// Hole 9: Grand Finale - Panther's Roar! (Tee [6, 0, -6] heading -Z, turning +X to Cup [10, 0, -10])
+courseTilesYaml += makeInstance('End', [6.0, 0.0, -6.0], 270);
+courseTilesYaml += makeInstance('Sides', [6.0, 0.0, -8.0], 0);
+courseTilesYaml += makeInstance('Corner', [6.0, 0.0, -10.0], 0);
 courseTilesYaml += makeInstance('Sides', [8.0, 0.0, -10.0], 90);
-courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, -10.0], 90);
+courseTilesYaml += makeInstance('Endhole', [10.0, 0.0, -10.0], 180);
 courseTilesYaml += makeInstance('Flag', [10.0, 0.0, -10.0], 0);
-// Authentic Pitt Panther Statue Monument (scale 1.0, rotated facing player approach)
-courseTilesYaml += makeInstance('Panther', [8.0, 0.0, -7.5], -90, 0);
+// Authentic Pitt Panther Statue Monument (scale 1.0, overlooking corner and green)
+courseTilesYaml += makeInstance('Panther', [8.2, 0.0, -7.8], -90, 0);
 
 // 6. Floor TeleportArea (Allows VR teleportation across the entire 30m x 30m hall)
 const floorTeleportYaml = 
