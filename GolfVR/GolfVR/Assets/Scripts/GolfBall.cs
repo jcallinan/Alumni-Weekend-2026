@@ -109,6 +109,18 @@ namespace GolfVR
             }
         }
 
+        /// <summary>
+        /// Sharply cuts the ball's speed the instant it enters a cup trigger.
+        /// There's no physical funnel geometry to capture it, so without this
+        /// a putt hit with any real force just rolls straight through the
+        /// trigger and out the other side before the hole's sink check runs.
+        /// </summary>
+        public void DampenForCup()
+        {
+            _rigidbody.velocity *= 0.1f;
+            _rigidbody.angularVelocity *= 0.1f;
+        }
+
         public void StopBall()
         {
             _rigidbody.velocity = Vector3.zero;

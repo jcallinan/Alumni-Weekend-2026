@@ -70,18 +70,23 @@ namespace GolfVR
             GolfBall ball = other.GetComponent<GolfBall>();
             if (ball != null)
             {
-                StartCoroutine(VerifyAndSinkBall(ball));
+                // Cut its speed immediately so a fast putt can't blow straight
+                // through the trigger before OnTriggerStay gets a chance to sink it.
+                ball.DampenForCup();
             }
         }
 
-        private IEnumerator VerifyAndSinkBall(GolfBall ball)
+        private void OnTriggerStay(Collider other)
         {
-            // Brief moment to ensure ball actually drops in and doesn't just skim over
-            yield return new WaitForSeconds(0.12f);
+            if (_isCompleted) return;
 
-            if (_isCompleted) yield break;
+            GolfBall ball = other.GetComponent<GolfBall>();
+            if (ball == null) return;
 
-            // Check if ball is still close to the hole center
+            // Checked every physics frame the ball is inside the trigger, rather
+            // than a single delayed snapshot -- a one-shot check could catch the
+            // ball mid-roll on the far side of the cup and never retry even if
+            // it settles in a moment later.
             float dist = Vector3.Distance(ball.transform.position, transform.position);
             if (dist < 0.6f)
             {
