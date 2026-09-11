@@ -7,7 +7,6 @@
 
 import { GlobalComponent, textureLoader } from './global';
 import {
-	Group,
 	Mesh,
 	MeshBasicMaterial,
 	Object3D,
@@ -22,13 +21,6 @@ import { System } from 'elics';
 export class WelcomeSystem extends System {
 	init() {
 		this._welcomePanel = null;
-		this._sneakerObjects = {
-			left: null,
-			right: null,
-		};
-
-		this._sneakersGroup = null;
-		this._sneakersDetached = false;
 	}
 
 	update() {
@@ -40,9 +32,12 @@ export class WelcomeSystem extends System {
 			PlayerComponent,
 		);
 
-		const { sneakerLeft, sneakerRight } = global;
+		const panther = global.panther;
+		if (!panther) return;
 
-		if (!this._welcomePanel && sneakerLeft && sneakerRight) {
+		// Only dock the Panther to a head-following welcome card while actually
+		// in an XR session; on desktop it should just sit where panther.js put it.
+		if (!this._welcomePanel && global.renderer.xr.isPresenting) {
 			const geometry = new PlaneGeometry(0.5, 0.12);
 			const material = new MeshBasicMaterial({
 				transparent: true,
@@ -64,32 +59,21 @@ export class WelcomeSystem extends System {
 				positionTarget: uiAnchor,
 				lookatTarget: player.head,
 			});
-			console.log(this._welcomePanel);
 
-			sneakerLeft.mesh.position.set(-0.025, 0.039, -0.061);
-			sneakerRight.mesh.position.set(-0.025, 0.039, 0.061);
-
-			const sneakers = new Group().add(sneakerLeft.mesh, sneakerRight.mesh);
-			sneakers.position.y = -0.25;
-			this._welcomePanel.add(sneakers);
-			this._sneakersGroup = sneakers;
+			// Dock the real, grabbable Panther root itself (not a copy) so that
+			// what you see is exactly what the grab system operates on. Grabbing
+			// it will naturally pull it out of this panel via GrabSystem's own
+			// Object3D.attach(), which works regardless of current parent.
+			panther.root.position.set(0, -0.22, 0.05);
+			this._welcomePanel.add(panther.root);
 		}
 
 		if (this._welcomePanel) {
-			let isAttached = false;
-			Object.values(player.controllers).forEach((controllerObject) => {
-				if (controllerObject.attached) {
-					isAttached = true;
-				}
-			});
-			if (isAttached && !this._sneakersDetached) {
-				[...this._sneakersGroup.children].forEach((sneakerObject) => {
-					global.scene.attach(sneakerObject);
-				});
-				this._sneakersDetached = true;
-			}
+			// Once the Panther has been grabbed away from the card, hide the
+			// (now empty) card instead of leaving a blank plane in view.
+			const stillDocked = panther.root.parent === this._welcomePanel;
 			this._welcomePanel.visible =
-				global.renderer.xr.isPresenting && !isAttached;
+				global.renderer.xr.isPresenting && stillDocked;
 		}
 	}
 }
