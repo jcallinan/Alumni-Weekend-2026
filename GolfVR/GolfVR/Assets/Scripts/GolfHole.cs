@@ -56,6 +56,11 @@ namespace GolfVR
             }
 
             GenerateFanfareAudioClip();
+
+            if (celebrationParticles == null)
+            {
+                celebrationParticles = CreateDefaultCelebrationParticles();
+            }
         }
 
         private void OnTriggerEnter(Collider other)
@@ -179,6 +184,40 @@ namespace GolfVR
 
             _generatedFanfareClip = AudioClip.Create("VictoryFanfareProcedural", numSamples, 1, sampleRate, false);
             _generatedFanfareClip.SetData(samples, 0);
+        }
+
+        /// <summary>
+        /// Builds a simple confetti-burst particle effect so sinking the ball
+        /// has a visual payoff, not just a sound.
+        /// </summary>
+        private ParticleSystem CreateDefaultCelebrationParticles()
+        {
+            GameObject psObject = new GameObject("CelebrationConfetti");
+            psObject.transform.SetParent(transform, false);
+            psObject.transform.localPosition = Vector3.up * 0.3f;
+
+            ParticleSystem ps = psObject.AddComponent<ParticleSystem>();
+
+            var main = ps.main;
+            main.duration = 1.5f;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.startLifetime = 1.2f;
+            main.startSpeed = 3.0f;
+            main.startSize = 0.08f;
+            main.gravityModifier = 1.0f;
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.25f, 0.25f), new Color(0.25f, 0.55f, 1f));
+
+            var emission = ps.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 50) });
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 35f;
+            shape.radius = 0.1f;
+
+            return ps;
         }
     }
 }

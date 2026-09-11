@@ -114,6 +114,17 @@ namespace GolfVR
                 golfPutter.ResetToPosition(putterPos, Quaternion.identity);
             }
 
+            // 4. Bring the scoreboard along to this hole's tee instead of leaving
+            // it stranded at a single fixed spot the player would have to walk
+            // back to after being teleported around the course.
+            if (scoreboard != null && currentHole.playerTeeLocation != null)
+            {
+                Transform teeLoc = currentHole.playerTeeLocation;
+                Vector3 boardPos = teeLoc.position + teeLoc.right * 1.8f + Vector3.up * 1.0f;
+                scoreboard.transform.position = boardPos;
+                scoreboard.transform.rotation = Quaternion.LookRotation(teeLoc.position - boardPos, Vector3.up);
+            }
+
             if (scoreboard != null)
             {
                 scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
