@@ -36,7 +36,7 @@ export class GrabSystem extends System {
 			if (!controllerObject.attached) {
 				targetRaySpace.getWorldPosition(this._vec3);
 				const intersectObjects = this.getEntities(this.queries.sneakers)
-					.filter((entity) => !entity.getComponent(GrabComponent).attahced)
+					.filter((entity) => !entity.getComponent(GrabComponent).attached)
 					.map((entity) => entity.getComponent(GrabComponent).object3D)
 					.sort(
 						(a, b) =>
@@ -48,7 +48,12 @@ export class GrabSystem extends System {
 					const dist = intersectObjects[0]
 						.getWorldPosition(this._vec32)
 						.distanceTo(this._vec3);
-					const objScale = intersectObjects[0].scale.x || 1.0;
+					// The panther's visual scale is applied to its inner mesh, not this
+					// grabbed root object (which stays at scale 1 so in-XR UI panels
+					// don't scale with it), so read the real displayed scale from it.
+					const objScale = global.panther
+						? global.panther.currentScale
+						: intersectObjects[0].scale.x || 1.0;
 					const grabThreshold = Math.max(0.4, objScale * 0.8);
 					if (dist < grabThreshold) {
 						const key =

@@ -25,7 +25,7 @@ namespace YourNamespaceName
 
                 // Calculate position on the circular flat area with variation
                 float radius = Mathf.Sqrt(Random.value) * spread; // Random value for radius
-                Vector3 randomPosition = new Vector3(Mathf.Cos(angle) * radius, Random.Range(-1f, 1f) * spread * 0.2f, Mathf.Sin(angle) * radius);
+                Vector3 randomPosition = new Vector3(Mathf.Cos(angle) * radius, Random.Range(0f, 1f) * spread * 0.2f, Mathf.Sin(angle) * radius);
 
                 // Instantiate the sphere at the random position
                 GameObject sphere = Instantiate(spherePrefab, transform.position + randomPosition, Quaternion.identity);
