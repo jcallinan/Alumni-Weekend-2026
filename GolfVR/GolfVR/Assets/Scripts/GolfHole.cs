@@ -127,6 +127,12 @@ namespace GolfVR
             {
                 StartCoroutine(AnimateFlag());
             }
+
+            // 4. Alumni Weekend fireworks: night sky, fireworks, horns, back to day
+            if (FireworksCelebrationController.Instance != null)
+            {
+                FireworksCelebrationController.Instance.PlayFireworksCelebration();
+            }
         }
 
         private IEnumerator AnimateFlag()
