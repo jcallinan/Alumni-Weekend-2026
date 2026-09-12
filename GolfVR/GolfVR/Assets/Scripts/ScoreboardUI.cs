@@ -42,9 +42,22 @@ namespace GolfVR
 
         private void EnsureUIComponents()
         {
-            if (titleText != null && totalScoreText != null && holeParTexts[0] != null) return;
+            if (titleText != null && totalScoreText != null
+                && holeParTexts != null && holeParTexts.Length > 0 && holeParTexts[0] != null)
+            {
+                return;
+            }
             if (_builtDynamicUI) return;
             _builtDynamicUI = true;
+
+            // These arrays are sized by the field initializer (new Text[9]) in
+            // code, but a scene can persist a serialized override (e.g. an
+            // empty array from when the component was first added) that wins
+            // over the initializer -- reallocate to the size the row-building
+            // loop below actually needs so it can't index out of range.
+            if (holeParTexts == null || holeParTexts.Length < 9) holeParTexts = new Text[9];
+            if (holeStrokeTexts == null || holeStrokeTexts.Length < 9) holeStrokeTexts = new Text[9];
+            if (holeStatusTexts == null || holeStatusTexts.Length < 9) holeStatusTexts = new Text[9];
 
             // Setup or find World Space Canvas
             Canvas canvas = GetComponent<Canvas>();
