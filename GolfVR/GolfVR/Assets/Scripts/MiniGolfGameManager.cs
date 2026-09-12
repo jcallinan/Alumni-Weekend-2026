@@ -267,5 +267,38 @@ namespace GolfVR
                 golfBall.SpawnAtTee(holes[_currentHoleIndex].teePoint.position);
             }
         }
+
+#if UNITY_EDITOR
+        [Tooltip("Editor-only: press this key in Play mode to sink the current hole for quick testing")]
+        public KeyCode debugSinkKey = KeyCode.K;
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(debugSinkKey))
+            {
+                DebugSinkCurrentHole();
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Testing convenience: sinks whichever hole is currently being
+        /// played -- ball snaps into the cup and the real celebration/scoring
+        /// path runs (confetti, fanfare, fireworks, advance to next hole) --
+        /// without needing to actually putt it in. Right-click the "Mini Golf
+        /// Game Manager" component header in the Inspector during Play mode
+        /// and choose "DEBUG: Sink Current Hole", or press K.
+        /// </summary>
+        [ContextMenu("DEBUG: Sink Current Hole")]
+        public void DebugSinkCurrentHole()
+        {
+            if (holes == null || _currentHoleIndex < 0 || _currentHoleIndex >= holes.Length || holes[_currentHoleIndex] == null)
+            {
+                Debug.LogWarning("[GolfVR] DebugSinkCurrentHole: no valid current hole to sink.");
+                return;
+            }
+
+            holes[_currentHoleIndex].DebugForceSink();
+        }
     }
 }

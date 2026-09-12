@@ -90,17 +90,52 @@ namespace GolfVR
             float dist = Vector3.Distance(ball.transform.position, transform.position);
             if (dist < 0.6f)
             {
-                _isCompleted = true;
-                ball.StopBall();
-
-                // Trigger celebratory fanfare and visuals
-                PlayCelebration();
-
-                if (MiniGolfGameManager.Instance != null)
-                {
-                    MiniGolfGameManager.Instance.OnHoleSunk(this);
-                }
+                Sink(ball);
             }
+        }
+
+        private void Sink(GolfBall ball)
+        {
+            _isCompleted = true;
+            if (ball != null)
+            {
+                ball.transform.position = transform.position;
+                ball.StopBall();
+            }
+
+            // Trigger celebratory fanfare and visuals
+            PlayCelebration();
+
+            if (MiniGolfGameManager.Instance != null)
+            {
+                MiniGolfGameManager.Instance.OnHoleSunk(this);
+            }
+        }
+
+        /// <summary>
+        /// Testing convenience: forces this hole to sink right now, running
+        /// the exact same celebration/scoring path a real putt would (ball
+        /// snapped into the cup, confetti, fanfare, fireworks, hole
+        /// advance) without needing to actually putt the ball in. Right-click
+        /// the MiniGolfGameManager component in the Inspector during Play
+        /// mode and choose "DEBUG: Sink Current Hole" to call it.
+        /// </summary>
+        [ContextMenu("DEBUG: Force Sink This Hole")]
+        public void DebugForceSink()
+        {
+            if (_isCompleted)
+            {
+                Debug.Log($"[GolfVR] {name} is already completed.");
+                return;
+            }
+
+            GolfBall ball = MiniGolfGameManager.Instance != null ? MiniGolfGameManager.Instance.golfBall : null;
+            if (ball == null)
+            {
+                ball = FindObjectOfType<GolfBall>();
+            }
+
+            Sink(ball);
         }
 
         public void PlayCelebration()
