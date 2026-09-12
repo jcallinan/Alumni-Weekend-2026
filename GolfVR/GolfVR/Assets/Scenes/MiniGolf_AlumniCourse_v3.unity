@@ -38974,12 +38974,13 @@ TextMesh:
     Swing it to
     hit the ball into the cup
 
-    Push stick FORWARD to teleport
+    Click TRACKPAD (center) to teleport
 
-    Tilt stick
-    RIGHT: snap putter to you
+    Click
+    trackpad RIGHT edge: snap putter to you
 
-    Tilt stick LEFT: reset ball in front of you'
+    Click trackpad LEFT edge: reset
+    ball in front of you'
   m_OffsetZ: 0
   m_CharacterSize: 1
   m_LineSpacing: 1.1
