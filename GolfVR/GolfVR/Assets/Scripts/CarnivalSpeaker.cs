@@ -33,34 +33,60 @@ namespace GolfVR
         }
 
         /// <summary>
-        /// Generates a short, seamlessly-looping carnival calliope melody procedurally.
+        /// Generates a seamlessly-looping carnival calliope tune procedurally:
+        /// a bouncy melody with pitch vibrato over an "oom-pah" bass pulse,
+        /// rather than a single bare arpeggio.
         /// </summary>
         private AudioClip GenerateCarnivalLoop()
         {
             int sampleRate = 44100;
-            float[] noteFrequencies = { 523.25f, 659.25f, 783.99f, 1046.50f, 783.99f, 659.25f, 587.33f, 523.25f }; // C E G C G E D C
-            float noteDuration = 0.22f;
-            float totalDuration = noteFrequencies.Length * noteDuration;
+            const float stepDuration = 0.2f;
+
+            // A bouncy carousel-style phrase in C major.
+            float[] melody =
+            {
+                523.25f, 659.25f, 783.99f, 659.25f, // C E G E
+                523.25f, 587.33f, 659.25f, 783.99f, // C D E G
+                880.00f, 783.99f, 659.25f, 587.33f, // A G E D
+                523.25f, 659.25f, 783.99f, 1046.50f, // C E G C
+            };
+
+            // Oom-pah accompaniment: root/fifth pulse an octave-plus below.
+            float[] bass = new float[melody.Length];
+            for (int i = 0; i < bass.Length; i++)
+            {
+                bass[i] = (i % 2 == 0) ? 130.81f : 196.00f; // C3 / G3
+            }
+
+            int stepCount = melody.Length;
+            float totalDuration = stepCount * stepDuration;
             int numSamples = (int)(sampleRate * totalDuration);
             float[] samples = new float[numSamples];
 
             for (int i = 0; i < numSamples; i++)
             {
                 float t = (float)i / sampleRate;
-                int noteIndex = Mathf.Min((int)(t / noteDuration), noteFrequencies.Length - 1);
-                float freq = noteFrequencies[noteIndex];
+                int step = Mathf.Min((int)(t / stepDuration), stepCount - 1);
+                float stepT = t % stepDuration;
 
-                // Sine-shaped envelope per note: zero at each note boundary so the
+                // Sine-shaped envelope per step: zero at each boundary so the
                 // whole clip starts and ends at silence and loops without clicks.
-                float noteT = t % noteDuration;
-                float envelope = Mathf.Sin(Mathf.PI * Mathf.Clamp01(noteT / noteDuration));
+                float envelope = Mathf.Sin(Mathf.PI * Mathf.Clamp01(stepT / stepDuration));
 
-                // Bright, harmonic-rich tone approximating a calliope/carousel organ.
-                float v = Mathf.Sin(2f * Mathf.PI * freq * t)
-                        + 0.5f * Mathf.Sin(2f * Mathf.PI * freq * 2f * t)
-                        + 0.25f * Mathf.Sin(2f * Mathf.PI * freq * 3f * t);
+                // Calliope-style pitch wobble on the melody voice.
+                float vibrato = 1f + 0.03f * Mathf.Sin(2f * Mathf.PI * 5.5f * t);
+                float melodyFreq = melody[step] * vibrato;
 
-                samples[i] = v * envelope * 0.3f;
+                float melodyTone = Mathf.Sin(2f * Mathf.PI * melodyFreq * t)
+                                  + 0.55f * Mathf.Sin(2f * Mathf.PI * melodyFreq * 2f * t)
+                                  + 0.30f * Mathf.Sin(2f * Mathf.PI * melodyFreq * 3f * t)
+                                  + 0.12f * Mathf.Sin(2f * Mathf.PI * melodyFreq * 4f * t);
+
+                float bassFreq = bass[step];
+                float bassTone = Mathf.Sin(2f * Mathf.PI * bassFreq * t)
+                                + 0.4f * Mathf.Sin(2f * Mathf.PI * bassFreq * 2f * t);
+
+                samples[i] = (melodyTone * 0.6f + bassTone * 0.35f) * envelope * 0.35f;
             }
 
             AudioClip clip = AudioClip.Create("CarnivalLoopProcedural", numSamples, 1, sampleRate, false);
