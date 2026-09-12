@@ -113,7 +113,17 @@ namespace GolfVR
             // 3. Place putter near player/ball if not currently held
             if (repositionPutter && golfPutter != null && !golfPutter.IsHeld && currentHole.teePoint != null)
             {
-                Vector3 putterPos = currentHole.teePoint.position + Vector3.right * 0.35f + Vector3.up * 0.5f;
+                // Tee markers are authored at ground level, but the actual
+                // fairway surface can sit well above that on raised or
+                // sloped course pieces -- raycast down to find it instead
+                // of assuming a fixed height.
+                Vector3 sideSpot = currentHole.teePoint.position + Vector3.right * 0.8f;
+                Vector3 castOrigin = sideSpot + Vector3.up * 3f;
+                float surfaceY = Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f)
+                    ? hit.point.y
+                    : currentHole.teePoint.position.y;
+
+                Vector3 putterPos = new Vector3(sideSpot.x, surfaceY + 0.5f, sideSpot.z);
                 golfPutter.ResetToPosition(putterPos, Quaternion.identity);
             }
 

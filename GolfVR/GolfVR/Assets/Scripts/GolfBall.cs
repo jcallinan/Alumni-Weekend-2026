@@ -139,10 +139,29 @@ namespace GolfVR
         {
             _rigidbody.velocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
-            transform.position = teePosition + Vector3.up * 0.05f;
+            transform.position = FindRestingPosition(teePosition);
             _lastRestPosition = transform.position;
             _isRolling = false;
             _rollTimer = 0f;
+        }
+
+        /// <summary>
+        /// Tee markers are authored at ground level (y=0), but the actual
+        /// fairway surface sits well above that on raised course pieces.
+        /// Raycast down to find the real surface instead of assuming a fixed
+        /// height, so this works across flat, sloped, and raised sections.
+        /// </summary>
+        private Vector3 FindRestingPosition(Vector3 teePosition)
+        {
+            float radius = GetComponent<SphereCollider>().radius * transform.lossyScale.x;
+            Vector3 castOrigin = teePosition + Vector3.up * 3f;
+
+            if (Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f))
+            {
+                return hit.point + Vector3.up * radius;
+            }
+
+            return teePosition + Vector3.up * radius;
         }
 
         private void HandleOutOfBounds()
