@@ -135,7 +135,14 @@ namespace GolfVR
                 Transform teeLoc = currentHole.playerTeeLocation;
                 Vector3 boardPos = teeLoc.position + teeLoc.right * 1.8f + Vector3.up * 1.0f;
                 scoreboard.transform.position = boardPos;
-                scoreboard.transform.rotation = Quaternion.LookRotation(teeLoc.position - boardPos, Vector3.up);
+                // LookRotation points the object's local +Z at the target,
+                // but a Canvas reads correctly from its local -Z side (same
+                // convention as this project's TextMesh signs) -- so the
+                // forward vector needs to point AWAY from the tee, not at
+                // it, or a player standing at the tee sees the scoreboard
+                // mirrored/backwards (confirmed via a headless screenshot
+                // taken from the tee's own position).
+                scoreboard.transform.rotation = Quaternion.LookRotation(boardPos - teeLoc.position, Vector3.up);
             }
 
             if (scoreboard != null)

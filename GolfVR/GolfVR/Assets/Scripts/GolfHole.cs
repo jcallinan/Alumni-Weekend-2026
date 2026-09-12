@@ -129,6 +129,23 @@ namespace GolfVR
                 return;
             }
 
+            // MiniGolfGameManager.OnHoleSunk scores against whatever hole
+            // it currently thinks is active (_currentHoleIndex), not the
+            // specific GolfHole instance passed in -- so force-sinking a
+            // hole other than the active one would advance the wrong
+            // counter and show the wrong par/hole number in the banner.
+            // Right-clicking a hole in the Hierarchy and choosing this
+            // command by hand only makes sense for the active one, so warn
+            // rather than silently producing a mismatched scoreboard.
+            if (MiniGolfGameManager.Instance != null
+                && MiniGolfGameManager.Instance.holes != null
+                && MiniGolfGameManager.Instance.CurrentHoleIndex < MiniGolfGameManager.Instance.holes.Length
+                && MiniGolfGameManager.Instance.holes[MiniGolfGameManager.Instance.CurrentHoleIndex] != this)
+            {
+                Debug.LogWarning($"[GolfVR] {name} is not the active hole (current is hole {MiniGolfGameManager.Instance.CurrentHoleNumber}) -- use MiniGolfGameManager's \"DEBUG: Sink Current Hole\" instead, or this will score against the wrong hole.");
+                return;
+            }
+
             GolfBall ball = MiniGolfGameManager.Instance != null ? MiniGolfGameManager.Instance.golfBall : null;
             if (ball == null)
             {
