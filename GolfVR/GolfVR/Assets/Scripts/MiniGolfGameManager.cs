@@ -79,7 +79,10 @@ namespace GolfVR
                 }
             }
 
-            SetupHole(_currentHoleIndex);
+            // Skip the putter's auto-reposition on the very first hole: it
+            // should stay wherever it's placed in the scene (e.g. a starting
+            // display table) until the player has picked it up at least once.
+            SetupHole(_currentHoleIndex, repositionPutter: false);
 
             if (scoreboard != null)
             {
@@ -88,7 +91,7 @@ namespace GolfVR
             }
         }
 
-        private void SetupHole(int index)
+        private void SetupHole(int index, bool repositionPutter = true)
         {
             if (index < 0 || index >= holes.Length || holes[index] == null) return;
 
@@ -108,7 +111,7 @@ namespace GolfVR
             }
 
             // 3. Place putter near player/ball if not currently held
-            if (golfPutter != null && !golfPutter.IsHeld && currentHole.teePoint != null)
+            if (repositionPutter && golfPutter != null && !golfPutter.IsHeld && currentHole.teePoint != null)
             {
                 Vector3 putterPos = currentHole.teePoint.position + Vector3.right * 0.35f + Vector3.up * 0.5f;
                 golfPutter.ResetToPosition(putterPos, Quaternion.identity);
