@@ -16,11 +16,12 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 
 ## Features
 
-- **9-hole course** with per-hole tee signs, par, and named holes (e.g. "Long Drive", "Chicane Slalom", "Windmill Gauntlet"). Hole 9 currently has no custom name and shows as "Hole 9" — a content gap, not a bug, if you want to name it later.
+- **9-hole course** with per-hole tee signs, par, and named holes ("Long Drive", "Chicane Slalom", "Windmill Gauntlet", ... "The Final Roar" for the Hole 9 finale).
 - **Scoreboard** (world-space canvas) tracks strokes/par per hole and follows the player to whichever hole is active, showing a live "HOLE X COMPLETE!" banner with score terms (Hole in One, Eagle, Birdie, Par, Bogey) after each sink.
 - **Beginner-friendly reset buttons** (`QuickResetController`) repurpose the unused SteamVR snap-turn actions: one snaps the putter back in front of the player, the other resets the ball in front of the player.
 - **Fireworks celebration**: every hole sunk triggers confetti + victory fanfare (as before) plus a new sequence — the sky fades to a night skybox, a few colorful firework bursts go off with light flashes, two procedural horn blasts play, then it fades back to day (`FireworksCelebrationController`).
 - **Out-of-bounds handling**: a ball that falls off course gets a penalty stroke and resets to its last rest position.
+- **Reset-for-next-group kiosk**: a physical push-button near the entrance plaza (`ResetRoundButton`, built on SteamVR's own proven push-button interaction rather than a hand-rolled one) lets event staff reset the whole round — scores, ball, and putter all snapped back to Hole 1 — between groups without relaunching the app.
 
 ## Screenshots
 
@@ -42,7 +43,10 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 **Night sky + fireworks show**
 ![Night fireworks show](Screenshots/06_night_fireworks_show.png)
 
-All six were captured headlessly (no live Editor session) via `Tools/GolfVR/Capture Documentation Screenshots` — see Testing Tools below.
+**Reset-for-next-group kiosk**
+![Reset round kiosk](Screenshots/07_reset_round_kiosk.png)
+
+The first six were captured headlessly (no live Editor session) via `Tools/GolfVR/Capture Documentation Screenshots` — see Testing Tools below. The seventh (kiosk) was captured the same way with an ad hoc one-off script during development and isn't part of that regenerable set.
 
 ## Testing tools
 
@@ -73,6 +77,8 @@ Both run the real path — the ball snaps into the cup and the actual `OnHoleSun
 
 Each `GolfHole` also has its own **"DEBUG: Force Sink This Hole"** context-menu item, but it only works on whichever hole `MiniGolfGameManager` currently considers active — forcing a different hole logs a warning and does nothing, rather than silently scoring against the wrong hole and number (see Bugs Found below).
 
+For testing the reset kiosk specifically without walking up to it in a headset, call `MiniGolfGameManager.Instance.ResetForNextGroup()` directly, or trigger `ResetRoundButton`'s private `OnPressed` the same way a hand-hover-press would.
+
 ## Bugs found and fixed via this testing
 
 Working entirely headless (no live Editor / VR headset available for direct testing) meant relying on the tools above to catch problems that would otherwise only surface once someone actually played the course. Found and fixed so far:
@@ -82,6 +88,7 @@ Working entirely headless (no live Editor / VR headset available for direct test
 3. **Sign panels went solid black in shadow** — the Standard-shader board materials only showed their true color on the side catching direct sunlight. Made all sign panels emissive at their own albedo color so they're legible from any angle regardless of the sun.
 4. **Background ground plane rendered as a broken blue checkerboard** — the "Floor" plane had picked up an alpha-cutout rock material instead of a tileable ground texture. Restored it to match its sibling "floor far" plane.
 5. **Scoreboard read backwards from the tee** — same class of bug as #2: `SetupHole()`'s `Quaternion.LookRotation` pointed the board's *unreadable* side at the player standing at the tee. Found via the `05_scoreboard_and_banner.png` screenshot above (first capture showed fully mirrored text); fixed by flipping the look-at direction.
+6. **New props inherit the same two pitfalls automatically** — while building the reset kiosk (#3 and #5's root causes, generalized): its label board came out solid black until made emissive like every other sign, and its `LookRotation` (aimed at a ground-level reference point from 1.65m up) pitched the whole board into a tilted lectern angle instead of just yawing it to face the right way. Both fixed the same way as the originals; worth remembering for any future sign/label.
 
 If you notice anything else that looks wrong in a live headset session that these tools didn't catch, it's worth adding as a case to `ExtendedFeatureTest` so it stays caught.
 

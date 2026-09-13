@@ -61,7 +61,16 @@ namespace GolfVR
             InitializeRound();
         }
 
-        public void InitializeRound()
+        /// <summary>
+        /// Resets scoring and every hole and sends the player back to Hole 1.
+        /// The putter's position is left alone by default -- on first app
+        /// launch it should stay wherever it's placed in the scene (e.g. a
+        /// starting display table) until a player has picked it up -- but
+        /// pass true (as ResetForNextGroup does) to also snap it back into
+        /// place, e.g. when staff are resetting the course for a new group
+        /// who'll expect to find it back on its stand.
+        /// </summary>
+        public void InitializeRound(bool repositionPutter = false)
         {
             _currentHoleIndex = 0;
             _isGameFinished = false;
@@ -79,16 +88,24 @@ namespace GolfVR
                 }
             }
 
-            // Skip the putter's auto-reposition on the very first hole: it
-            // should stay wherever it's placed in the scene (e.g. a starting
-            // display table) until the player has picked it up at least once.
-            SetupHole(_currentHoleIndex, repositionPutter: false);
+            SetupHole(_currentHoleIndex, repositionPutter);
 
             if (scoreboard != null)
             {
                 scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
                 scoreboard.ShowBanner("WELCOME TO HOLE 1! Ready to putt!");
             }
+        }
+
+        /// <summary>
+        /// For event staff: resets the whole round for the next group of
+        /// players, including snapping the putter and ball back to Hole 1's
+        /// tee so the course looks freshly set up rather than however the
+        /// previous group left it.
+        /// </summary>
+        public void ResetForNextGroup()
+        {
+            InitializeRound(repositionPutter: true);
         }
 
         private void SetupHole(int index, bool repositionPutter = true)
