@@ -63,12 +63,6 @@ const compress = async (path, outputPath) => {
 	await io.write(outputPath, document);
 };
 
-compress('content/gltf/sneaker.gltf', 'src/assets/gltf/sneaker.gltf').then(
-	() => {
-		console.log('done');
-	},
-);
-
 compress('content/gltf/shadow.gltf', 'src/assets/gltf/shadow.gltf').then(() => {
 	console.log('done');
 });

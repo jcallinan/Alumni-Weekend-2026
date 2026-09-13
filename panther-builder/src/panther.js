@@ -132,9 +132,6 @@ export const loadPanther = (world, global, onLoaded) => {
 		pantherRoot.position.set(0, 0.8, -0.6); // Comfortable viewing position in VR
 
 		global.panther = pantherInstance;
-		// Keep alias for components expecting sneakerRight/Left
-		global.sneakerRight = pantherInstance;
-		global.sneakerLeft = pantherInstance;
 
 		pantherInstance.grabComponent = world
 			.createEntity()

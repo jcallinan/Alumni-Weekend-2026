@@ -35,7 +35,7 @@ export class GrabSystem extends System {
 			const { targetRaySpace } = controllerObject;
 			if (!controllerObject.attached) {
 				targetRaySpace.getWorldPosition(this._vec3);
-				const intersectObjects = this.getEntities(this.queries.sneakers)
+				const intersectObjects = this.getEntities(this.queries.grabbables)
 					.filter((entity) => !entity.getComponent(GrabComponent).attached)
 					.map((entity) => entity.getComponent(GrabComponent).object3D)
 					.sort(
@@ -64,7 +64,7 @@ export class GrabSystem extends System {
 			}
 		});
 
-		for (const entity of this.getEntities(this.queries.sneakers)) {
+		for (const entity of this.getEntities(this.queries.grabbables)) {
 			const grabComponent = entity.getComponent(GrabComponent);
 			grabComponent.justAttached = false;
 			grabComponent.justDetached = false;
@@ -95,5 +95,5 @@ export class GrabSystem extends System {
 GrabSystem.queries = {
 	global: { required: [GlobalComponent] },
 	player: { required: [PlayerComponent] },
-	sneakers: { required: [GrabComponent] },
+	grabbables: { required: [GrabComponent] },
 };
