@@ -90,16 +90,28 @@ namespace GolfVR
             float dist = Vector3.Distance(ball.transform.position, transform.position);
             if (dist < 0.6f)
             {
-                Sink(ball);
+                Sink(ball, snapBallToHole: false);
             }
         }
 
-        private void Sink(GolfBall ball)
+        private void Sink(GolfBall ball, bool snapBallToHole)
         {
             _isCompleted = true;
             if (ball != null)
             {
-                ball.transform.position = transform.position;
+                if (snapBallToHole)
+                {
+                    // Only used by the debug force-sink path, where the ball
+                    // hasn't actually rolled into the cup and needs a visual
+                    // nudge. SpawnAtTee raycasts down to the real surface
+                    // first -- directly teleporting to transform.position
+                    // (the hole trigger's own anchor, which can sit at or
+                    // below the green's solid collider) used to embed the
+                    // ball in that geometry, and the physics engine would
+                    // violently eject it out of view on the next physics
+                    // step the instant it settled here.
+                    ball.SpawnAtTee(transform.position);
+                }
                 ball.StopBall();
             }
 
@@ -152,7 +164,7 @@ namespace GolfVR
                 ball = FindObjectOfType<GolfBall>();
             }
 
-            Sink(ball);
+            Sink(ball, snapBallToHole: true);
         }
 
         public void PlayCelebration()

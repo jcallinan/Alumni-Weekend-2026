@@ -233,7 +233,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.55}
-  m_LocalScale: {x: 0.036111113, y: 0.061904762, z: 0.13}
+  m_LocalScale: {x: 0.015116278, y: 0.02, z: 0.13}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1912877000}
@@ -248,18 +248,21 @@ TextMesh:
   m_GameObject: {fileID: 1924780}
   m_Text: 'HOW TO PLAY
 
-
     Squeeze GRIP to pick up the putter
 
-    Swing it to
-    hit the ball into the cup
+    Swing it to hit
+    the ball into the cup
 
     Click TRACKPAD (center) to teleport
 
-    Click
-    trackpad RIGHT edge: snap putter to you
+    Click trackpad
+    RIGHT edge:
 
-    Click trackpad LEFT edge: reset
+    snap putter to you
+
+    Click trackpad LEFT edge:
+
+    reset
     ball in front of you'
   m_OffsetZ: 0
   m_CharacterSize: 1
@@ -2166,6 +2169,14 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 1172326663}
+    - target: {fileID: 114000013988111622, guid: 88075a54c7fb1484ba25db394b612917, type: 3}
+      propertyPath: onButtonUp.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000013988111622, guid: 88075a54c7fb1484ba25db394b612917, type: 3}
+      propertyPath: onButtonDown.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114000013988111622, guid: 88075a54c7fb1484ba25db394b612917, type: 3}
       propertyPath: onButtonUp.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -30316,8 +30327,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nightSkybox: {fileID: 2100000, guid: ab675e6698bde46fd87143fb0d7580cb, type: 2}
   dayNightFadeDuration: 1
-  nightHoldDuration: 3
-  burstCount: 5
+  nightHoldDuration: 7
+  burstCount: 9
   burstAreaRadiusX: 15
   burstAreaRadiusZ: 15
   burstHeight: 10
@@ -37782,7 +37793,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffefbea063cab884ca33e5a449e5c22c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attachmentFlags: 44
+  attachmentFlags: 47
   attachmentOffset: {fileID: 910000111}
   catchingSpeedThreshold: -1
   releaseVelocityStyle: 1
@@ -41862,7 +41873,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.0444444, y: 1.0761905, z: 0.55}
+  m_LocalScale: {x: 1.0186046, y: 1.0246154, z: 0.55}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1912877000}
@@ -79042,8 +79053,8 @@ Transform:
   m_GameObject: {fileID: 1912876999}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4.3, z: 0}
-  m_LocalScale: {x: 3.6, y: 2.1, z: 0.1}
+  m_LocalPosition: {x: 0, y: 6.5, z: 0}
+  m_LocalScale: {x: 8.6, y: 6.5, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1924781}
