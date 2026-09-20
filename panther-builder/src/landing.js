@@ -21,8 +21,14 @@ export class InlineSystem extends System {
 	_setupButtons(renderer, panther) {
 		const arButton = document.getElementById('ar-button');
 		const webLaunchButton = document.getElementById('web-launch-button');
+		const supportMessage = document.getElementById('ar-status-message');
 		if (webLaunchButton) {
 			webLaunchButton.style.display = 'none';
+		}
+		if (supportMessage) {
+			supportMessage.hidden = true;
+			supportMessage.textContent =
+				"This browser/device doesn’t look like it supports WebXR AR yet. You can still try it, but it may not work.";
 		}
 
 		if (arButton) {
@@ -31,12 +37,8 @@ export class InlineSystem extends System {
 				requiredFeatures: [],
 				optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
 				onUnsupported: () => {
-					arButton.textContent = 'WebXR AR is not available on this device/browser';
-					arButton.disabled = true;
-					arButton.classList.add('disabled');
-					if (webLaunchButton) {
-						webLaunchButton.style.display = 'block';
-						webLaunchButton.textContent = 'Try a WebXR-compatible browser or headset';
+					if (supportMessage) {
+						supportMessage.hidden = false;
 					}
 				},
 			});
