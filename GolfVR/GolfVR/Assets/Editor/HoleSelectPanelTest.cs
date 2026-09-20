@@ -27,8 +27,11 @@ namespace GolfVR.EditorTools
             GolfBall ball = Object.FindObjectOfType<GolfBall>();
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
             if (putter != null) Invoke(putter, "Awake");
             foreach (GolfHole h in manager.holes)
             {
@@ -90,6 +93,7 @@ namespace GolfVR.EditorTools
 
             TestJumpForwardAndBackward(manager, buttons);
             TestFireworksButtonFires(fwButton);
+            TestTravelButtons(manager);
 
             if (_failures == 0)
             {
@@ -155,6 +159,43 @@ namespace GolfVR.EditorTools
             {
                 _failures++;
                 Debug.LogError($"[HoleSelectTest] Jump forward/backward: FAIL - forwardOk={forwardOk}, backwardOk={backwardOk}, CurrentHoleIndex={manager.CurrentHoleIndex}.");
+            }
+        }
+
+        private static void TestTravelButtons(MiniGolfGameManager manager)
+        {
+            GoToHoleButton[] travel = Object.FindObjectsOfType<GoToHoleButton>();
+            if (travel.Length != 9)
+            {
+                _failures++;
+                Debug.LogError($"[HoleSelectTest] Expected 9 NEXT HOLE travel buttons (one per tee), found {travel.Length}.");
+                return;
+            }
+
+            foreach (GoToHoleButton b in travel)
+            {
+                Invoke(b, "Awake");
+                CheckNoDanglingListeners(b.GetComponent<Valve.VR.InteractionSystem.HoverButton>(), $"NextHole button at hole {b.fromHoleIndex + 1}");
+            }
+
+            manager.InitializeRound();
+            manager.holes[0].DebugForceSink(); // hole 1 done; its progress must survive travelling
+            GoToHoleButton atHole1 = System.Array.Find(travel, b => b.fromHoleIndex == 0);
+            GoToHoleButton atHole9 = System.Array.Find(travel, b => b.fromHoleIndex == 8);
+
+            InvokeButtonPress(atHole1);
+            bool toHole2 = manager.CurrentHoleIndex == 1 && manager.holes[0].IsCompleted;
+            InvokeButtonPress(atHole9);
+            bool wrapsToHole1 = manager.CurrentHoleIndex == 0 && manager.holes[0].IsCompleted;
+
+            if (toHole2 && wrapsToHole1)
+            {
+                Debug.Log("[HoleSelectTest] Travel buttons: OK (9 present, no dangling listeners; hole 1 button -> hole 2, hole 9 button wraps to hole 1, sunk holes stay sunk).");
+            }
+            else
+            {
+                _failures++;
+                Debug.LogError($"[HoleSelectTest] Travel buttons: FAIL - toHole2={toHole2}, wrapsToHole1={wrapsToHole1}, current={manager.CurrentHoleIndex}.");
             }
         }
 

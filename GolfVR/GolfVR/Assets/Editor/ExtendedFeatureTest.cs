@@ -27,7 +27,7 @@ namespace GolfVR.EditorTools
             EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
 
             MiniGolfGameManager manager = Object.FindObjectOfType<MiniGolfGameManager>();
-            GolfBall ball = Object.FindObjectOfType<GolfBall>();
+            GolfBall ball = manager != null ? manager.GetBallForHole(0) : null; // hole 1's ball
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
             QuickResetController quickReset = Object.FindObjectOfType<QuickResetController>();
 
@@ -37,8 +37,11 @@ namespace GolfVR.EditorTools
                 return;
             }
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
             if (putter != null) Invoke(putter, "Awake");
             foreach (GolfHole h in manager.holes)
             {
@@ -55,7 +58,7 @@ namespace GolfVR.EditorTools
 
             TestOutOfBounds(manager, ball);
             TestQuickReset(quickReset);
-            TestForceSinkGuard(manager);
+            TestForceSinkAnyHoleAndBallOwnership(manager);
 
             if (_failures == 0)
             {
@@ -80,9 +83,8 @@ namespace GolfVR.EditorTools
 
             ScoreboardUI scoreboard = manager.scoreboard;
 
-            MethodInfo routineMethod = typeof(MiniGolfGameManager).GetMethod("HandleHoleSunkRoutine", PrivateInstance);
-            var routine = (System.Collections.IEnumerator)routineMethod.Invoke(manager, new object[] { hole });
-            routine.MoveNext(); // banner text is set synchronously before the yield
+            SetField(hole, "_isCompleted", true); // what GolfHole.Sink does before telling the manager
+            manager.OnHoleSunk(hole);
 
             string banner = scoreboard != null && scoreboard.bannerText != null ? scoreboard.bannerText.text : null;
             if (banner != null && banner.Contains(expectedSubstring))
@@ -94,11 +96,6 @@ namespace GolfVR.EditorTools
                 _failures++;
                 Debug.LogError($"[ExtTest] {label}: FAIL - expected banner to contain \"{expectedSubstring}\", got \"{banner}\"");
             }
-
-            // Drain the rest of the routine so _isTransitioning doesn't leak
-            // into the next scenario.
-            int guard = 0;
-            while (routine.MoveNext() && guard < 1000) guard++;
         }
 
         private static void TestOutOfBounds(MiniGolfGameManager manager, GolfBall ball)
@@ -149,20 +146,56 @@ namespace GolfVR.EditorTools
             }
         }
 
-        private static void TestForceSinkGuard(MiniGolfGameManager manager)
+        private static void TestForceSinkAnyHoleAndBallOwnership(MiniGolfGameManager manager)
         {
             manager.InitializeRound();
-            GolfHole notCurrentHole = manager.holes[3]; // hole index 0 is current after InitializeRound
-            notCurrentHole.DebugForceSink();
 
-            if (!notCurrentHole.IsCompleted)
+            // 1. Force-sinking a hole other than the one the player is at works
+            //    (every hole has its own ball) and only touches that hole.
+            GolfHole hole4 = manager.holes[3];
+            hole4.DebugForceSink();
+            bool onlyHole4 = hole4.IsCompleted && !manager.holes[0].IsCompleted && manager.CurrentHoleIndex == 3;
+            if (onlyHole4)
             {
-                Debug.Log("[ExtTest] Force-sink guard: OK (force-sinking a non-active hole was correctly refused).");
+                Debug.Log("[ExtTest] Force-sink any hole: OK (hole 4 sunk with its own ball; hole 1 untouched; scoreboard moved to hole 4).");
             }
             else
             {
                 _failures++;
-                Debug.LogError("[ExtTest] Force-sink guard: FAIL - a non-active hole was sunk anyway.");
+                Debug.LogError($"[ExtTest] Force-sink any hole: FAIL - hole4 completed={hole4.IsCompleted}, hole1 completed={manager.holes[0].IsCompleted}, current hole index={manager.CurrentHoleIndex}.");
+            }
+
+            // 2. Another hole's ball dropped into a cup must not sink it.
+            GolfHole hole6 = manager.holes[5];
+            GolfBall hole1Ball = manager.GetBallForHole(0);
+            hole1Ball.transform.position = hole6.transform.position;
+            Physics.SyncTransforms();
+            MethodInfo stay = typeof(GolfHole).GetMethod("OnTriggerStay", PrivateInstance);
+            stay.Invoke(hole6, new object[] { hole1Ball.GetComponent<Collider>() });
+            if (!hole6.IsCompleted)
+            {
+                Debug.Log("[ExtTest] Ball ownership: OK (hole 1's ball sitting in hole 6's cup did not sink hole 6).");
+            }
+            else
+            {
+                _failures++;
+                Debug.LogError("[ExtTest] Ball ownership: FAIL - hole 6 was sunk by hole 1's ball.");
+            }
+
+            // 3. Sinking all nine holes (each with its own ball) finishes the round.
+            manager.InitializeRound();
+            for (int i = 0; i < manager.holes.Length; i++)
+            {
+                manager.holes[i].DebugForceSink();
+            }
+            if (manager.IsGameFinished)
+            {
+                Debug.Log("[ExtTest] Round completion: OK (all nine holes sunk in arbitrary order -> round finished).");
+            }
+            else
+            {
+                _failures++;
+                Debug.LogError("[ExtTest] Round completion: FAIL - all nine holes sunk but the round is not finished.");
             }
         }
 

@@ -1,10 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR.InteractionSystem;
 
 namespace GolfVR
 {
+    /// <summary>
+    /// Runs the 9-hole round. Every hole has its OWN ball sitting at its tee
+    /// (GolfBall.holeIndex says which hole a ball belongs to), so there is no
+    /// carrying one ball from hole to hole and nothing that has to "advance":
+    /// the player just walks or teleports to any hole and putts the ball
+    /// that's waiting there. Strokes are counted per ball, a hole's sink only
+    /// counts for its own ball, and the round is finished once all nine holes
+    /// are completed. The "current hole" (shown on the scoreboard, which
+    /// follows the player) is simply whichever hole the player is at.
+    /// </summary>
     public class MiniGolfGameManager : MonoBehaviour
     {
         public static MiniGolfGameManager Instance { get; private set; }
@@ -13,6 +21,7 @@ namespace GolfVR
         public GolfHole[] holes = new GolfHole[9];
 
         [Header("Equipment & Player")]
+        [Tooltip("The Hole 1 ball. The full set (one per hole) is discovered at startup from every GolfBall's holeIndex.")]
         public GolfBall golfBall;
         public GolfPutter golfPutter;
         public Transform playerTransform;
@@ -20,23 +29,34 @@ namespace GolfVR
         [Header("UI Scoreboard")]
         public ScoreboardUI scoreboard;
 
-        [Header("Transitions & Delays")]
-        [Tooltip("Delay in seconds after sinking ball before transitioning to next hole")]
+        [Header("Banners")]
+        [Tooltip("Seconds the 'HOLE COMPLETE' banner stays up after a sink")]
         public float holeTransitionDelay = 3.5f;
+
+        [Tooltip("How close (m) the player must be to a hole's tee for the scoreboard to switch to that hole")]
+        public float scoreboardFollowRadius = 6f;
 
         [Header("Audio")]
         public AudioSource globalAudioSource;
 
+        // One ball per hole, indexed by hole index.
+        private GolfBall[] _holeBalls;
+
         // Game State
         private int _currentHoleIndex = 0;
         private int[] _strokesPerHole;
-        private bool _isTransitioning = false;
         private bool _isGameFinished = false;
+        private float _nextFollowCheck;
 
         public int CurrentHoleIndex => _currentHoleIndex;
         public int CurrentHoleNumber => _currentHoleIndex + 1;
         public int CurrentHoleStrokes => (_strokesPerHole != null && _currentHoleIndex < _strokesPerHole.Length) ? _strokesPerHole[_currentHoleIndex] : 0;
         public bool IsGameFinished => _isGameFinished;
+
+        /// <summary>The ball belonging to the hole the player is currently at.</summary>
+        public GolfBall CurrentBall => GetBallForHole(_currentHoleIndex);
+
+        private int HoleCount => holes != null && holes.Length > 0 ? holes.Length : 9;
 
         private void Awake()
         {
@@ -52,8 +72,8 @@ namespace GolfVR
                 globalAudioSource = GetComponent<AudioSource>();
             }
 
-            int count = holes != null && holes.Length > 0 ? holes.Length : 9;
-            _strokesPerHole = new int[count];
+            _strokesPerHole = new int[HoleCount];
+            ResolveBalls();
         }
 
         private void Start()
@@ -62,29 +82,65 @@ namespace GolfVR
         }
 
         /// <summary>
-        /// Resets scoring and every hole and sends the player back to Hole 1.
-        /// The putter's position is left alone by default -- on first app
-        /// launch it should stay wherever it's placed in the scene (e.g. a
-        /// starting display table) until a player has picked it up -- but
-        /// pass true (as ResetForNextGroup does) to also snap it back into
-        /// place, e.g. when staff are resetting the course for a new group
-        /// who'll expect to find it back on its stand.
+        /// Builds the hole-index -> ball table from every GolfBall in the
+        /// scene. A scene with a single ball (older layouts) just gets that
+        /// ball for hole 1.
+        /// </summary>
+        private void ResolveBalls()
+        {
+            int count = HoleCount;
+            _holeBalls = new GolfBall[count];
+
+            foreach (GolfBall b in FindObjectsOfType<GolfBall>())
+            {
+                int i = Mathf.Clamp(b.holeIndex, 0, count - 1);
+                if (_holeBalls[i] == null) _holeBalls[i] = b;
+            }
+
+            if (_holeBalls[0] == null && golfBall != null) _holeBalls[0] = golfBall;
+            if (_holeBalls[0] != null) golfBall = _holeBalls[0];
+        }
+
+        public GolfBall GetBallForHole(int index)
+        {
+            if (_holeBalls == null) ResolveBalls();
+            if (index < 0 || index >= _holeBalls.Length) return null;
+            return _holeBalls[index];
+        }
+
+        private int IndexOfHole(GolfHole hole)
+        {
+            if (holes == null) return -1;
+            for (int i = 0; i < holes.Length; i++)
+            {
+                if (holes[i] == hole) return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Resets scoring and every hole, puts every ball back on its own
+        /// tee and sends the player to Hole 1. The putter's position is left
+        /// alone by default -- on first app launch it should stay wherever
+        /// it's placed in the scene (e.g. a starting display table) until a
+        /// player has picked it up -- but pass true (as ResetForNextGroup
+        /// does) to also let go of it and snap it back into place, e.g. when
+        /// staff are resetting the course for a new group.
         /// </summary>
         public void InitializeRound(bool repositionPutter = false)
         {
             _currentHoleIndex = 0;
             _isGameFinished = false;
-            _isTransitioning = false;
 
-            int count = holes != null && holes.Length > 0 ? holes.Length : 9;
+            int count = HoleCount;
             _strokesPerHole = new int[count];
 
             for (int i = 0; i < count; i++)
             {
-                _strokesPerHole[i] = 0;
                 if (holes != null && i < holes.Length && holes[i] != null)
                 {
                     holes[i].ResetHole();
+                    PutBallOnTee(i);
                 }
             }
 
@@ -95,38 +151,48 @@ namespace GolfVR
                 golfPutter.ReleaseFromHand();
             }
 
-            SetupHole(_currentHoleIndex, repositionPutter);
+            SetupHole(0, repositionPutter);
 
             if (scoreboard != null)
             {
                 scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
-                scoreboard.ShowBanner("WELCOME TO HOLE 1! Ready to putt!");
+                scoreboard.ShowBanner("WELCOME TO HOLE 1! Every hole has its own ball -- walk or teleport to any hole and putt!");
             }
         }
 
         /// <summary>
         /// For event staff: resets the whole round for the next group of
-        /// players, including snapping the putter and ball back to Hole 1's
-        /// tee so the course looks freshly set up rather than however the
-        /// previous group left it.
+        /// players, including snapping the putter and every ball back to
+        /// their starting places so the course looks freshly set up.
         /// </summary>
         public void ResetForNextGroup()
         {
             InitializeRound(repositionPutter: true);
         }
 
+        private void PutBallOnTee(int index)
+        {
+            GolfBall ball = GetBallForHole(index);
+            if (ball != null && holes[index] != null && holes[index].teePoint != null)
+            {
+                ball.SpawnAtTee(holes[index].teePoint.position);
+            }
+        }
+
+        /// <summary>
+        /// Makes the given hole the one the player is "at": moves the player
+        /// there, resets that hole's ball onto its tee, and (optionally)
+        /// snaps the putter beside it.
+        /// </summary>
         private void SetupHole(int index, bool repositionPutter = true)
         {
-            if (index < 0 || index >= holes.Length || holes[index] == null) return;
+            if (holes == null || index < 0 || index >= holes.Length || holes[index] == null) return;
 
             GolfHole currentHole = holes[index];
             currentHole.ResetHole();
 
-            // 1. Move ball to tee
-            if (golfBall != null && currentHole.teePoint != null)
-            {
-                golfBall.SpawnAtTee(currentHole.teePoint.position);
-            }
+            // 1. This hole's ball back on its tee
+            PutBallOnTee(index);
 
             // 2. Move player near the tee
             if (currentHole.playerTeeLocation != null)
@@ -151,9 +217,22 @@ namespace GolfVR
                 golfPutter.ResetToPosition(putterPos, Quaternion.identity);
             }
 
-            // 4. Bring the scoreboard along to this hole's tee instead of leaving
-            // it stranded at a single fixed spot the player would have to walk
-            // back to after being teleported around the course.
+            // 4. Scoreboard + "current hole" follow the player to this hole
+            SetCurrentHole(index);
+        }
+
+        /// <summary>
+        /// Points the scoreboard (and the flag animators / hole indicator)
+        /// at the given hole, bringing the scoreboard along to that hole's
+        /// tee instead of leaving it stranded where the player has left.
+        /// </summary>
+        public void SetCurrentHole(int index)
+        {
+            if (holes == null || index < 0 || index >= holes.Length || holes[index] == null) return;
+
+            _currentHoleIndex = index;
+            GolfHole currentHole = holes[index];
+
             if (scoreboard != null && currentHole.playerTeeLocation != null)
             {
                 Transform teeLoc = currentHole.playerTeeLocation;
@@ -175,14 +254,28 @@ namespace GolfVR
             }
         }
 
+        /// <summary>Counts a stroke against the current hole.</summary>
         public void RecordStroke()
         {
-            if (_isTransitioning || _isGameFinished) return;
+            RecordStroke(_currentHoleIndex);
+        }
 
-            _strokesPerHole[_currentHoleIndex]++;
-            Debug.Log($"[GolfVR] Stroke recorded! Hole {_currentHoleIndex + 1}: {_strokesPerHole[_currentHoleIndex]} strokes.");
+        /// <summary>Counts a stroke against the given hole (called by that hole's ball).</summary>
+        public void RecordStroke(int holeIndex)
+        {
+            if (_isGameFinished) return;
+            if (_strokesPerHole == null || holeIndex < 0 || holeIndex >= _strokesPerHole.Length) return;
+            if (holes != null && holeIndex < holes.Length && holes[holeIndex] != null && holes[holeIndex].IsCompleted) return;
 
-            if (scoreboard != null)
+            _strokesPerHole[holeIndex]++;
+            Debug.Log($"[GolfVR] Stroke recorded! Hole {holeIndex + 1}: {_strokesPerHole[holeIndex]} strokes.");
+
+            // Putting a ball means the player is at that hole.
+            if (holeIndex != _currentHoleIndex)
+            {
+                SetCurrentHole(holeIndex);
+            }
+            else if (scoreboard != null)
             {
                 scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
             }
@@ -190,9 +283,15 @@ namespace GolfVR
 
         public void RecordPenaltyStroke(string reason)
         {
-            if (_isTransitioning || _isGameFinished) return;
+            RecordPenaltyStroke(reason, _currentHoleIndex);
+        }
 
-            _strokesPerHole[_currentHoleIndex]++;
+        public void RecordPenaltyStroke(string reason, int holeIndex)
+        {
+            if (_isGameFinished) return;
+            if (_strokesPerHole == null || holeIndex < 0 || holeIndex >= _strokesPerHole.Length) return;
+
+            _strokesPerHole[holeIndex]++;
 
             if (scoreboard != null)
             {
@@ -206,55 +305,62 @@ namespace GolfVR
             // Ball came to rest
         }
 
-        private float _transitionStartTime;
-
+        /// <summary>
+        /// A hole's own ball went in the cup: score it, celebrate, and finish
+        /// the round if that was the last open hole. Nothing moves -- the
+        /// player is free to head to whichever hole they like next.
+        /// </summary>
         public void OnHoleSunk(GolfHole hole)
         {
+            int index = IndexOfHole(hole);
+            if (index < 0)
+            {
+                Debug.LogWarning($"[GolfVR] Hole {hole.holeNumber} sunk but isn't in the manager's hole list -- ignoring.");
+                return;
+            }
+
             if (_isGameFinished)
             {
                 Debug.Log($"[GolfVR] Hole {hole.holeNumber} sunk but the round is already finished -- ignoring. Press the reset kiosk to start a new round.");
                 return;
             }
 
-            if (_isTransitioning)
-            {
-                // Watchdog: a hole transition that never finished (something
-                // threw mid-routine, or the manager object was disabled and
-                // re-enabled) would otherwise leave the round wedged forever.
-                if (Time.time - _transitionStartTime < holeTransitionDelay + 5f)
-                {
-                    Debug.Log($"[GolfVR] Hole {hole.holeNumber} sunk while a transition is already running -- ignoring.");
-                    return;
-                }
-                Debug.LogWarning("[GolfVR] Previous hole transition never finished -- recovering.");
-            }
+            _currentHoleIndex = index;
 
-            _transitionStartTime = Time.time;
-            StartCoroutine(HandleHoleSunkRoutine(hole));
-        }
-
-        private IEnumerator HandleHoleSunkRoutine(GolfHole hole)
-        {
-            _isTransitioning = true;
-
-            int strokes = _strokesPerHole[_currentHoleIndex];
-            int par = hole.par;
-            int diff = strokes - par;
+            int strokes = _strokesPerHole[index];
+            int diff = strokes - hole.par;
 
             string scoreTerm;
-            if (strokes == 1) scoreTerm = "HOLE IN ONE! 🌟";
+            if (strokes <= 1) scoreTerm = "HOLE IN ONE! 🌟";
             else if (diff <= -2) scoreTerm = "EAGLE! 🦅";
             else if (diff == -1) scoreTerm = "BIRDIE! 🐦";
             else if (diff == 0) scoreTerm = "PAR! ⛳";
             else if (diff == 1) scoreTerm = "BOGEY 🏌️";
             else scoreTerm = $"+{diff} BOGEY 🏌️";
 
+            int remaining = 0;
+            for (int i = 0; i < holes.Length; i++)
+            {
+                if (holes[i] != null && !holes[i].IsCompleted) remaining++;
+            }
+
+            int nextOpen = -1;
+            for (int k = 1; k < holes.Length; k++)
+            {
+                int j = (index + k) % holes.Length;
+                if (holes[j] != null && !holes[j].IsCompleted)
+                {
+                    nextOpen = j;
+                    break;
+                }
+            }
+
             string msg = $"HOLE {hole.holeNumber} COMPLETE!\n{scoreTerm} ({strokes} Strokes)";
-            Debug.Log($"[GolfVR] {msg} -- moving to the next hole in {holeTransitionDelay:F1}s.");
+            if (remaining > 0 && nextOpen >= 0) msg += $"\nNext up: Hole {nextOpen + 1}";
+            Debug.Log($"[GolfVR] {msg.Replace('\n', ' ')} -- {remaining} hole(s) left.");
 
             // Scoreboard/banner work is presentation only: guard it so a UI
-            // problem can never strand the round on the hole that was just
-            // completed.
+            // problem can never affect the scoring state above.
             try
             {
                 if (scoreboard != null)
@@ -268,32 +374,9 @@ namespace GolfVR
                 Debug.LogException(e);
             }
 
-            yield return new WaitForSeconds(holeTransitionDelay);
-
-            // Advance to next hole or complete round
-            if (_currentHoleIndex < holes.Length - 1)
+            if (remaining == 0)
             {
-                _currentHoleIndex++;
-                _isTransitioning = false;
-                Debug.Log($"[GolfVR] Advancing to hole {_currentHoleIndex + 1}.");
-                SetupHole(_currentHoleIndex);
-                try
-                {
-                    if (scoreboard != null)
-                    {
-                        scoreboard.ShowBanner($"NOW PLAYING HOLE {_currentHoleIndex + 1} (Par {holes[_currentHoleIndex].par})", 3.0f);
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            }
-            else
-            {
-                // Round Complete!
                 _isGameFinished = true;
-                _isTransitioning = false;
                 Debug.Log("[GolfVR] Round complete.");
 
                 int totalStrokes = 0;
@@ -338,24 +421,19 @@ namespace GolfVR
             }
         }
 
+        /// <summary>Puts the current hole's ball back on its tee.</summary>
         public void ResetCurrentBallToTee()
         {
-            if (golfBall != null && _currentHoleIndex < holes.Length && holes[_currentHoleIndex] != null)
-            {
-                golfBall.SpawnAtTee(holes[_currentHoleIndex].teePoint.position);
-            }
+            PutBallOnTee(_currentHoleIndex);
         }
 
         /// <summary>
-        /// Testing convenience: jumps straight to any hole -- resetting
-        /// every hole's completed flag and the target hole's stroke count,
-        /// then teleporting the player and snapping the ball/putter to its
-        /// tee -- without needing to play through every prior hole first.
-        /// For the physical "pick a hole" panel used during in-headset
-        /// testing, so a specific hole's fairway/geometry can be checked
-        /// directly. Also doubles as a per-hole "put the ball and putter
-        /// back" button: pressing the button for whichever hole is already
-        /// active resets just that hole, in place.
+        /// Testing convenience: takes the player straight to any hole and
+        /// resets just that hole -- its completed flag, stroke count and
+        /// ball (back on its tee) -- plus the putter beside it. Other holes'
+        /// progress is left alone. For the physical "pick a hole" panel; also
+        /// doubles as a per-hole "put the ball and putter back" button when
+        /// pressed for the hole you're already at.
         /// </summary>
         public void JumpToHole(int index)
         {
@@ -366,17 +444,10 @@ namespace GolfVR
             }
 
             _isGameFinished = false;
-            _isTransitioning = false;
-            _currentHoleIndex = index;
 
-            int count = holes.Length;
-            if (_strokesPerHole == null || _strokesPerHole.Length != count)
+            if (_strokesPerHole == null || _strokesPerHole.Length != HoleCount)
             {
-                _strokesPerHole = new int[count];
-            }
-            for (int i = 0; i < count; i++)
-            {
-                if (holes[i] != null) holes[i].ResetHole();
+                _strokesPerHole = new int[HoleCount];
             }
             _strokesPerHole[index] = 0;
 
@@ -391,26 +462,92 @@ namespace GolfVR
             Debug.Log($"[GolfVR] Jumped to hole {index + 1}.");
         }
 
-#if UNITY_EDITOR
-        [Tooltip("Editor-only: press this key in Play mode to sink the current hole for quick testing")]
-        public KeyCode debugSinkKey = KeyCode.K;
+        /// <summary>
+        /// Travel only: takes the player to the given hole's tee (wrapping
+        /// past the last hole back to the first when `index` is out of
+        /// range) WITHOUT resetting anything -- the hole's ball is wherever
+        /// it was left, the score is kept, and the putter stays in the hand.
+        /// Used by the "NEXT HOLE" buttons at every tee, as a reliable
+        /// alternative to the arc teleport.
+        /// </summary>
+        public void GoToHole(int index)
+        {
+            if (holes == null || holes.Length == 0) return;
+            index = ((index % holes.Length) + holes.Length) % holes.Length;
+            if (holes[index] == null) return;
+
+            GolfHole hole = holes[index];
+            if (hole.playerTeeLocation != null)
+            {
+                TeleportPlayer(hole.playerTeeLocation.position, hole.playerTeeLocation.rotation);
+            }
+
+            SetCurrentHole(index);
+
+            if (scoreboard != null)
+            {
+                string state = hole.IsCompleted ? "(already sunk)" : $"Par {hole.par}";
+                scoreboard.ShowBanner($"HOLE {hole.holeNumber}: {hole.holeName}  {state}", 3.0f);
+            }
+
+            Debug.Log($"[GolfVR] Went to hole {index + 1}.");
+        }
 
         private void Update()
         {
+            // The scoreboard and hole indicator follow the player around the
+            // course: whichever tee they're standing near is the current hole.
+            if (Time.time >= _nextFollowCheck)
+            {
+                _nextFollowCheck = Time.time + 0.3f;
+                FollowPlayerToNearestHole();
+            }
+
+#if UNITY_EDITOR
             if (Input.GetKeyDown(debugSinkKey))
             {
                 DebugSinkCurrentHole();
             }
+#endif
         }
+
+        private void FollowPlayerToNearestHole()
+        {
+            if (Player.instance == null || holes == null) return;
+
+            Vector3 p = Player.instance.feetPositionGuess;
+            int best = -1;
+            float bestDist = scoreboardFollowRadius;
+            for (int i = 0; i < holes.Length; i++)
+            {
+                if (holes[i] == null || holes[i].playerTeeLocation == null) continue;
+                Vector3 d = holes[i].playerTeeLocation.position - p;
+                d.y = 0f;
+                if (d.magnitude < bestDist)
+                {
+                    bestDist = d.magnitude;
+                    best = i;
+                }
+            }
+
+            if (best >= 0 && best != _currentHoleIndex)
+            {
+                SetCurrentHole(best);
+            }
+        }
+
+#if UNITY_EDITOR
+        [Tooltip("Editor-only: press this key in Play mode to sink the current hole for quick testing")]
+        public KeyCode debugSinkKey = KeyCode.K;
 #endif
 
         /// <summary>
-        /// Testing convenience: sinks whichever hole is currently being
-        /// played -- ball snaps into the cup and the real celebration/scoring
-        /// path runs (confetti, fanfare, fireworks, advance to next hole) --
-        /// without needing to actually putt it in. Right-click the "Mini Golf
-        /// Game Manager" component header in the Inspector during Play mode
-        /// and choose "DEBUG: Sink Current Hole", or press K.
+        /// Testing convenience: sinks the hole the player is at -- its ball
+        /// snaps into the cup and the real celebration/scoring path runs
+        /// (confetti, fanfare, fireworks, scoreboard) -- without needing to
+        /// actually putt it in. Right-click the "Mini Golf Game Manager"
+        /// component header in the Inspector during Play mode and choose
+        /// "DEBUG: Sink Current Hole", or press K.
         /// </summary>
         [ContextMenu("DEBUG: Sink Current Hole")]
         public void DebugSinkCurrentHole()

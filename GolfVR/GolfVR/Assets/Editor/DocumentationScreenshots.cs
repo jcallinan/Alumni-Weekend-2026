@@ -30,8 +30,11 @@ namespace GolfVR.EditorTools
             GolfBall ball = Object.FindObjectOfType<GolfBall>();
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
             if (putter != null) Invoke(putter, "Awake");
             foreach (GolfHole h in manager.holes)
             {
@@ -70,10 +73,7 @@ namespace GolfVR.EditorTools
         {
             manager.DebugSinkCurrentHole();
 
-            MethodInfo routineMethod = typeof(MiniGolfGameManager).GetMethod("HandleHoleSunkRoutine", PrivateInstance);
             GolfHole hole = manager.holes[0];
-            var routine = (System.Collections.IEnumerator)routineMethod.Invoke(manager, new object[] { hole });
-            routine.MoveNext(); // sets the banner text synchronously, before the yield
 
             Transform teeLoc = hole.playerTeeLocation;
             Vector3 camPos = teeLoc.position + Vector3.up * 1.2f;

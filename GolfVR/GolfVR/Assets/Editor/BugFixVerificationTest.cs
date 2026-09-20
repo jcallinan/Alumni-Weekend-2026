@@ -25,11 +25,14 @@ namespace GolfVR.EditorTools
             EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
 
             MiniGolfGameManager manager = Object.FindObjectOfType<MiniGolfGameManager>();
-            GolfBall ball = Object.FindObjectOfType<GolfBall>();
+            GolfBall ball = manager != null ? manager.GetBallForHole(0) : null; // hole 1's ball
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
             if (putter != null) Invoke(putter, "Awake");
             foreach (GolfHole h in manager.holes)
             {
@@ -60,9 +63,9 @@ namespace GolfVR.EditorTools
             GolfHole hole = manager.holes[0];
 
             // Simulate the ball rolling to a rest point 0.3m away from the
-            // cup center (well within the 0.6m sink threshold, but NOT
+            // cup center (inside the sink radius, but NOT
             // exactly on top of it) -- the real gameplay case.
-            Vector3 restSpot = hole.transform.position + new Vector3(0.3f, 0f, 0f);
+            Vector3 restSpot = hole.transform.position + new Vector3(0.1f, 0f, 0f);
             ball.transform.position = restSpot;
 
             MethodInfo onTriggerStay = typeof(GolfHole).GetMethod("OnTriggerStay", PrivateInstance);

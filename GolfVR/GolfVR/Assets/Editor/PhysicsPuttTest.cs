@@ -30,8 +30,11 @@ namespace GolfVR.EditorTools
             GolfBall ball = Object.FindObjectOfType<GolfBall>();
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
             if (putter != null) Invoke(putter, "Awake");
             foreach (GolfHole h in manager.holes) Invoke(h, "Awake");
             Invoke(manager, "Awake");
@@ -39,8 +42,12 @@ namespace GolfVR.EditorTools
 
             string dragArg = GetArg("-testDrag"); string angArg = GetArg("-testAngDrag");
             Rigidbody ballBody = ball.GetComponent<Rigidbody>();
-            if (dragArg != null) ballBody.drag = float.Parse(dragArg, System.Globalization.CultureInfo.InvariantCulture);
-            if (angArg != null) ballBody.angularDrag = float.Parse(angArg, System.Globalization.CultureInfo.InvariantCulture);
+            foreach (GolfBall each in Object.FindObjectsOfType<GolfBall>())
+            {
+                Rigidbody eachBody = each.GetComponent<Rigidbody>();
+                if (dragArg != null) eachBody.drag = float.Parse(dragArg, System.Globalization.CultureInfo.InvariantCulture);
+                if (angArg != null) eachBody.angularDrag = float.Parse(angArg, System.Globalization.CultureInfo.InvariantCulture);
+            }
             Debug.Log($"[PhysTest] ball drag={ballBody.drag} angularDrag={ballBody.angularDrag} mass={ballBody.mass}");
 
             // Default: the six holes with a clear straight line from tee to cup
@@ -69,7 +76,7 @@ namespace GolfVR.EditorTools
             Debug.Log($"[PhysTest] SUMMARY: {sunk}/{total} putts registered as sunk.");
             if (defaultRun)
             {
-                if (sunk == total) Debug.Log("[PhysTest] RESULT: PASS - every clear-line putt at 3 and 5 m/s rolled into the cup and advanced to the next hole.");
+                if (sunk == total) Debug.Log("[PhysTest] RESULT: PASS - every clear-line putt at 3 and 5 m/s rolled into its own cup and registered.");
                 else Debug.LogError($"[PhysTest] RESULT: FAIL - only {sunk}/{total} clear-line putts sank.");
             }
         }
@@ -77,6 +84,7 @@ namespace GolfVR.EditorTools
         private static bool RollAtHole(MiniGolfGameManager manager, GolfBall ball, int holeIndex, float speed)
         {
             GolfHole hole = manager.holes[holeIndex];
+            ball = manager.GetBallForHole(holeIndex);
             manager.JumpToHole(holeIndex);
             GolfPutter parkedPutter = Object.FindObjectOfType<GolfPutter>();
             if (parkedPutter != null) { parkedPutter.transform.position = new Vector3(0f, 30f, 0f); parkedPutter.GetComponent<Rigidbody>().isKinematic = true; }
@@ -134,13 +142,7 @@ namespace GolfVR.EditorTools
 
             if (hole.IsCompleted)
             {
-                // Run the real hole-transition routine and confirm we advance.
-                MethodInfo routineMethod = typeof(MiniGolfGameManager).GetMethod("HandleHoleSunkRoutine", PrivateInstance);
-                // OnHoleSunk already StartCoroutine'd in Edit mode (never runs); drive our own copy.
-                System.Collections.IEnumerator routine = (System.Collections.IEnumerator)routineMethod.Invoke(manager, new object[] { hole });
-                int guard = 0;
-                while (routine.MoveNext() && guard < 1000) guard++;
-                Debug.Log($"[PhysTest]   after transition: current hole = {manager.CurrentHoleNumber}");
+                Debug.Log($"[PhysTest]   scoreboard state: hole {manager.CurrentHoleNumber} current, finished={manager.IsGameFinished}");
             }
             return hole.IsCompleted;
         }

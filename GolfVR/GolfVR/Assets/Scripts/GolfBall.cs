@@ -7,6 +7,10 @@ namespace GolfVR
     [RequireComponent(typeof(SphereCollider))]
     public class GolfBall : MonoBehaviour
     {
+        [Header("Hole")]
+        [Tooltip("Which hole (0-8) this ball belongs to. Every hole has its own ball; it only counts for, and only sinks in, its own hole.")]
+        public int holeIndex = 0;
+
         [Header("Physics Settings")]
         [Tooltip("Linear velocity below which the ball is brought to a complete stop")]
         public float stopVelocityThreshold = 0.08f;
@@ -105,7 +109,7 @@ namespace GolfVR
 
             if (MiniGolfGameManager.Instance != null)
             {
-                MiniGolfGameManager.Instance.RecordStroke();
+                MiniGolfGameManager.Instance.RecordStroke(holeIndex);
             }
         }
 
@@ -171,7 +175,7 @@ namespace GolfVR
             // Penalty stroke and reset
             if (MiniGolfGameManager.Instance != null)
             {
-                MiniGolfGameManager.Instance.RecordPenaltyStroke("Out of Bounds! (+1 Penalty)");
+                MiniGolfGameManager.Instance.RecordPenaltyStroke($"Hole {holeIndex + 1}: Out of Bounds! (+1 Penalty)", holeIndex);
             }
 
             SpawnAtTee(_lastRestPosition);

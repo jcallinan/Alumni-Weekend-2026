@@ -16,6 +16,8 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 
 ## Features
 
+- **A ball at every hole**: each of the 9 holes has its own ball waiting at its tee (`GolfBall.holeIndex`; `MiniGolfGameManager` keeps one per hole). Nothing is carried or "advanced" from hole to hole any more: finish a hole, then go to any other one and putt the ball waiting there. Strokes and sinks are counted per ball, a hole only accepts its own ball, and the round ends when all nine are holed (in any order). The scoreboard follows the player to whichever tee they are standing near.
+- **NEXT HOLE buttons**: a small post with an orange push-button beside every tee (`GoToHoleButton` -> `MiniGolfGameManager.GoToHole`) takes you to the next hole's tee (Hole 9 wraps to Hole 1) without resetting anything -- a reliable alternative to the arc teleport. Reset/sunk state and scores are kept.
 - **9-hole course** with per-hole tee signs, par, and named holes ("Long Drive", "Chicane Slalom", "Windmill Gauntlet", ... "The Final Roar" for the Hole 9 finale).
 - **Scoreboard** (world-space canvas) tracks strokes/par per hole and follows the player to whichever hole is active, showing a live "HOLE X COMPLETE!" banner with score terms (Hole in One, Eagle, Birdie, Par, Bogey) after each sink.
 - **Beginner-friendly reset buttons** (`QuickResetController`) repurpose the unused SteamVR snap-turn actions: one snaps the putter back in front of the player, the other resets the ball in front of the player.
@@ -114,3 +116,4 @@ If you notice anything else that looks wrong in a live headset session that thes
 - From an elevated/aerial camera angle you can see a faint checkerboard pattern on the horizon beyond the green grass ring — that's SteamVR's own sample "floor far" material (deliberately a chaperone-style grid, used here as a far-distance ground filler), not a bug; it's barely visible at normal player eye height.
 - `Assets/SteamVR/InteractionSystem/Core/Scripts/Throwable.cs` carries one GolfVR addition (`stickyGrip`). Re-importing or upgrading the SteamVR plugin will overwrite it; re-apply it (two lines) or the putter will drop when the grip is released.
 - The putter's exact hold angle can't be verified without a headset: the geometry (grip on the hand, head hanging below and ahead by the chosen lean) is tested, but which lean *feels* right depends on the player's wrist, hence the trackpad-right cycle.
+- **Every hole has its own ball** (replaces the old "one ball is teleported to the next hole after a sink" flow, which never worked reliably in the headset). The hole-select panel's buttons now take you to that hole and reset only that hole; `ResetForNextGroup` puts all nine balls back on their tees.

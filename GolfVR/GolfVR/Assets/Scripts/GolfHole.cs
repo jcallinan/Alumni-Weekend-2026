@@ -81,17 +81,24 @@ namespace GolfVR
 
         private Rigidbody _ballBody;
 
-        private bool IsActiveHole()
+        /// <summary>
+        /// The ball that belongs to this hole (every hole has its own). A
+        /// stand-alone hole with no manager falls back to any ball in the scene.
+        /// </summary>
+        private GolfBall OwnBall()
         {
             MiniGolfGameManager m = MiniGolfGameManager.Instance;
-            if (m == null || m.holes == null) return true; // no manager: stand-alone hole, always live
-            int i = m.CurrentHoleIndex;
-            return i >= 0 && i < m.holes.Length && m.holes[i] == this;
+            if (m == null || m.holes == null) return FindObjectOfType<GolfBall>();
+            for (int i = 0; i < m.holes.Length; i++)
+            {
+                if (m.holes[i] == this) return m.GetBallForHole(i);
+            }
+            return null;
         }
 
         /// <summary>
-        /// Distance-based cup logic, run every physics step for the ACTIVE
-        /// hole only. Deliberately not built on trigger callbacks: Unity
+        /// Distance-based cup logic, run every physics step for THIS hole and its own
+        /// ball only. Deliberately not built on trigger callbacks: Unity
         /// stops sending OnTriggerStay to a sleeping rigidbody, and a ball
         /// that has just come to rest is exactly the case that needs to
         /// register. Two stages:
@@ -102,10 +109,9 @@ namespace GolfVR
         /// </summary>
         private void FixedUpdate()
         {
-            if (_isCompleted || !IsActiveHole()) return;
+            if (_isCompleted) return;
 
-            MiniGolfGameManager m = MiniGolfGameManager.Instance;
-            GolfBall ball = m != null ? m.golfBall : null;
+            GolfBall ball = OwnBall();
             if (ball == null) return;
             if (_ballBody == null) _ballBody = ball.GetComponent<Rigidbody>();
             if (_ballBody == null) return;
@@ -133,10 +139,10 @@ namespace GolfVR
             // Secondary path (also what the headless playtest drives directly):
             // a ball already down in the cup counts even if FixedUpdate hasn't
             // run yet.
-            if (_isCompleted || !IsActiveHole()) return;
+            if (_isCompleted) return;
 
             GolfBall ball = other.GetComponent<GolfBall>();
-            if (ball == null) return;
+            if (ball == null || ball != OwnBall()) return; // another hole's ball can never sink here
 
             Vector3 flat = ball.transform.position - transform.position;
             float height = flat.y;
@@ -204,27 +210,11 @@ namespace GolfVR
                 return;
             }
 
-            // MiniGolfGameManager.OnHoleSunk scores against whatever hole
-            // it currently thinks is active (_currentHoleIndex), not the
-            // specific GolfHole instance passed in -- so force-sinking a
-            // hole other than the active one would advance the wrong
-            // counter and show the wrong par/hole number in the banner.
-            // Right-clicking a hole in the Hierarchy and choosing this
-            // command by hand only makes sense for the active one, so warn
-            // rather than silently producing a mismatched scoreboard.
-            if (MiniGolfGameManager.Instance != null
-                && MiniGolfGameManager.Instance.holes != null
-                && MiniGolfGameManager.Instance.CurrentHoleIndex < MiniGolfGameManager.Instance.holes.Length
-                && MiniGolfGameManager.Instance.holes[MiniGolfGameManager.Instance.CurrentHoleIndex] != this)
-            {
-                Debug.LogWarning($"[GolfVR] {name} is not the active hole (current is hole {MiniGolfGameManager.Instance.CurrentHoleNumber}) -- use MiniGolfGameManager's \"DEBUG: Sink Current Hole\" instead, or this will score against the wrong hole.");
-                return;
-            }
-
-            GolfBall ball = MiniGolfGameManager.Instance != null ? MiniGolfGameManager.Instance.golfBall : null;
+            GolfBall ball = OwnBall();
             if (ball == null)
             {
-                ball = FindObjectOfType<GolfBall>();
+                Debug.LogWarning($"[GolfVR] {name}: no ball found for this hole.");
+                return;
             }
 
             Sink(ball, snapBallToHole: true);

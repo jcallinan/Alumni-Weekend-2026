@@ -33,8 +33,11 @@ namespace GolfVR.EditorTools
                 return;
             }
 
-            Invoke(ball, "Awake");
-            Invoke(ball, "Start");
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>())
+            {
+                Invoke(b, "Awake");
+                Invoke(b, "Start");
+            }
 
             if (putter != null)
             {
@@ -49,8 +52,6 @@ namespace GolfVR.EditorTools
             Invoke(manager, "Awake");
             Invoke(manager, "Start"); // -> InitializeRound() -> SetupHole(0, repositionPutter: false)
 
-            Collider ballCollider = ball.GetComponent<Collider>();
-
             for (int i = 0; i < manager.holes.Length; i++)
             {
                 GolfHole hole = manager.holes[i];
@@ -60,14 +61,15 @@ namespace GolfVR.EditorTools
                     return;
                 }
 
-                int currentIndex = (int)GetProp(manager, "CurrentHoleIndex");
-                if (currentIndex != i)
+                // Every hole has its own ball; drop it into its own cup.
+                GolfBall holeBall = manager.GetBallForHole(i);
+                if (holeBall == null)
                 {
-                    Debug.LogError($"[Playtest] FAIL: expected to be on hole {i + 1}, manager reports hole {currentIndex + 1}.");
+                    Debug.LogError($"[Playtest] FAIL: hole {i + 1} has no ball.");
                     return;
                 }
-
-                ball.transform.position = hole.transform.position;
+                Collider ballCollider = holeBall.GetComponent<Collider>();
+                holeBall.transform.position = hole.transform.position;
                 InvokeWithArgs(hole, "OnTriggerStay", new object[] { ballCollider });
 
                 bool completed = (bool)GetProp(hole, "IsCompleted");
@@ -79,15 +81,6 @@ namespace GolfVR.EditorTools
 
                 Debug.Log($"[Playtest] Hole {i + 1} (par {hole.par}) sunk OK.");
 
-                MethodInfo routineMethod = typeof(MiniGolfGameManager).GetMethod("HandleHoleSunkRoutine", PrivateInstance);
-                IEnumerator routine = (IEnumerator)routineMethod.Invoke(manager, new object[] { hole });
-                int guard = 0;
-                while (routine.MoveNext() && guard < 1000) guard++;
-                if (guard >= 1000)
-                {
-                    Debug.LogError($"[Playtest] FAIL: hole-transition routine for hole {i + 1} did not terminate.");
-                    return;
-                }
             }
 
             bool finished = (bool)GetProp(manager, "IsGameFinished");

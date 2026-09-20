@@ -60,12 +60,15 @@ namespace GolfVR
 
         private void ResetBallToPlayer()
         {
-            if (ball == null || Player.instance == null) return;
+            GolfBall target = MiniGolfGameManager.Instance != null && MiniGolfGameManager.Instance.CurrentBall != null
+                ? MiniGolfGameManager.Instance.CurrentBall
+                : ball;
+            if (target == null || Player.instance == null) return;
 
             Vector3 pos = Player.instance.feetPositionGuess
                         + Player.instance.bodyDirectionGuess.normalized * forwardDistance;
 
-            ball.SpawnAtTee(pos);
+            target.SpawnAtTee(pos);
         }
     }
 }
