@@ -88,6 +88,13 @@ namespace GolfVR
                 }
             }
 
+            // A putter that sticks to the hand has to be let go before it can be
+            // put back on its stand for the next group.
+            if (repositionPutter && golfPutter != null)
+            {
+                golfPutter.ReleaseFromHand();
+            }
+
             SetupHole(_currentHoleIndex, repositionPutter);
 
             if (scoreboard != null)
@@ -136,7 +143,7 @@ namespace GolfVR
                 // of assuming a fixed height.
                 Vector3 sideSpot = currentHole.teePoint.position + Vector3.right * 0.8f;
                 Vector3 castOrigin = sideSpot + Vector3.up * 3f;
-                float surfaceY = Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f)
+                float surfaceY = Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore)
                     ? hit.point.y
                     : currentHole.teePoint.position.y;
 
@@ -199,9 +206,30 @@ namespace GolfVR
             // Ball came to rest
         }
 
+        private float _transitionStartTime;
+
         public void OnHoleSunk(GolfHole hole)
         {
-            if (_isTransitioning || _isGameFinished) return;
+            if (_isGameFinished)
+            {
+                Debug.Log($"[GolfVR] Hole {hole.holeNumber} sunk but the round is already finished -- ignoring. Press the reset kiosk to start a new round.");
+                return;
+            }
+
+            if (_isTransitioning)
+            {
+                // Watchdog: a hole transition that never finished (something
+                // threw mid-routine, or the manager object was disabled and
+                // re-enabled) would otherwise leave the round wedged forever.
+                if (Time.time - _transitionStartTime < holeTransitionDelay + 5f)
+                {
+                    Debug.Log($"[GolfVR] Hole {hole.holeNumber} sunk while a transition is already running -- ignoring.");
+                    return;
+                }
+                Debug.LogWarning("[GolfVR] Previous hole transition never finished -- recovering.");
+            }
+
+            _transitionStartTime = Time.time;
             StartCoroutine(HandleHoleSunkRoutine(hole));
         }
 
@@ -222,12 +250,22 @@ namespace GolfVR
             else scoreTerm = $"+{diff} BOGEY 🏌️";
 
             string msg = $"HOLE {hole.holeNumber} COMPLETE!\n{scoreTerm} ({strokes} Strokes)";
-            Debug.Log($"[GolfVR] {msg}");
+            Debug.Log($"[GolfVR] {msg} -- moving to the next hole in {holeTransitionDelay:F1}s.");
 
-            if (scoreboard != null)
+            // Scoreboard/banner work is presentation only: guard it so a UI
+            // problem can never strand the round on the hole that was just
+            // completed.
+            try
             {
-                scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
-                scoreboard.ShowBanner(msg, holeTransitionDelay);
+                if (scoreboard != null)
+                {
+                    scoreboard.UpdateScoreboard(holes, _strokesPerHole, _currentHoleIndex);
+                    scoreboard.ShowBanner(msg, holeTransitionDelay);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
             }
 
             yield return new WaitForSeconds(holeTransitionDelay);
@@ -237,10 +275,18 @@ namespace GolfVR
             {
                 _currentHoleIndex++;
                 _isTransitioning = false;
+                Debug.Log($"[GolfVR] Advancing to hole {_currentHoleIndex + 1}.");
                 SetupHole(_currentHoleIndex);
-                if (scoreboard != null)
+                try
                 {
-                    scoreboard.ShowBanner($"NOW PLAYING HOLE {_currentHoleIndex + 1} (Par {holes[_currentHoleIndex].par})", 3.0f);
+                    if (scoreboard != null)
+                    {
+                        scoreboard.ShowBanner($"NOW PLAYING HOLE {_currentHoleIndex + 1} (Par {holes[_currentHoleIndex].par})", 3.0f);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogException(e);
                 }
             }
             else
@@ -248,6 +294,7 @@ namespace GolfVR
                 // Round Complete!
                 _isGameFinished = true;
                 _isTransitioning = false;
+                Debug.Log("[GolfVR] Round complete.");
 
                 int totalStrokes = 0;
                 int totalPar = 0;
@@ -261,10 +308,17 @@ namespace GolfVR
                 string totalDiffStr = totalDiff == 0 ? "Even Par" : (totalDiff > 0 ? $"+{totalDiff}" : $"{totalDiff}");
                 string finalMsg = $"🏆 9-HOLE CHAMPIONSHIP COMPLETE! 🏆\nTotal: {totalStrokes} Strokes ({totalDiffStr})\nThank you for visiting the UPB VR Lab!";
 
-                if (scoreboard != null)
+                try
                 {
-                    scoreboard.UpdateScoreboard(holes, _strokesPerHole, holes.Length - 1);
-                    scoreboard.ShowBanner(finalMsg, 12.0f);
+                    if (scoreboard != null)
+                    {
+                        scoreboard.UpdateScoreboard(holes, _strokesPerHole, holes.Length - 1);
+                        scoreboard.ShowBanner(finalMsg, 12.0f);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogException(e);
                 }
             }
         }

@@ -12,10 +12,10 @@ namespace GolfVR
         public float stopVelocityThreshold = 0.08f;
 
         [Tooltip("Rolling drag applied while moving")]
-        public float rollingDrag = 0.4f;
+        public float rollingDrag = 0.15f;
 
         [Tooltip("Angular drag applied while rolling")]
-        public float rollingAngularDrag = 0.6f;
+        public float rollingAngularDrag = 0.15f;
 
         [Header("Course Rules")]
         [Tooltip("Y position below which the ball is marked Out Of Bounds")]
@@ -156,7 +156,7 @@ namespace GolfVR
             float radius = GetComponent<SphereCollider>().radius * transform.lossyScale.x;
             Vector3 castOrigin = teePosition + Vector3.up * 3f;
 
-            if (Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f))
+            if (Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore))
             {
                 return hit.point + Vector3.up * radius;
             }

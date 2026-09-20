@@ -26,7 +26,7 @@ namespace GolfVR.EditorTools
         [MenuItem("Tools/GolfVR/Capture Scene Screenshot")]
         public static void Capture()
         {
-            EditorSceneManager.OpenScene("Assets/Scenes/MiniGolf_AlumniCourse_v3.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
 
             Vector3 pos = GetVector3Arg("-shotPos", new Vector3(0f, 2f, 6f));
             Vector3 lookAt = GetVector3Arg("-shotLookAt", new Vector3(0f, 1f, 0f));
@@ -91,7 +91,7 @@ namespace GolfVR.EditorTools
         [MenuItem("Tools/GolfVR/Capture Prefab Preview")]
         public static void CapturePrefabPreview()
         {
-            EditorSceneManager.OpenScene("Assets/Scenes/MiniGolf_AlumniCourse_v3.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
 
             string prefabPath = GetStringArg("-prefabPath", null);
             if (string.IsNullOrEmpty(prefabPath))

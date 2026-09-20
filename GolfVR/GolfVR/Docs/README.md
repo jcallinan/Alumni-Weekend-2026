@@ -1,15 +1,15 @@
 # GolfVR — University of Pittsburgh at Bradford Alumni Weekend 2026
 
-A 9-hole VR mini-golf course built in Unity 2022.3.62f3 with SteamVR, for the HTC Vive Pro (Vive Wand controllers). Scene: `Assets/Scenes/MiniGolf_AlumniCourse_v3.unity`.
+A 9-hole VR mini-golf course built in Unity 2022.3.62f3 with SteamVR, for the HTC Vive Pro (Vive Wand controllers). Scene: `Assets/Scenes/ICARUS_v1.unity` (forked from `MiniGolf_AlumniCourse_v3.unity`, which is left untouched as the previous version).
 
 ## Controls (Vive Wand)
 
 | Input | Action |
 |---|---|
 | Trigger | Grab / interact |
-| Grip button | Pick up the putter |
+| Grip button | Pick up the putter -- it then stays stuck to that hand (no need to keep squeezing); only the reset kiosk lets go of it |
 | Trackpad — center | Teleport |
-| Trackpad — right edge | Snap putter to you |
+| Trackpad — right edge | Snap putter to you (when not holding it) / while holding it: cycle the putter angle 0-15-30-45-60 degrees (remembered) |
 | Trackpad — left edge | Reset ball in front of you |
 
 These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
@@ -71,6 +71,8 @@ unity run <project-path> --editor-version 2022.3.62f3 -- -executeMethod <FullMet
 | Capture Documentation Screenshots | `GolfVR.EditorTools.DocumentationScreenshots.Run` | Regenerates all six screenshots above into `Docs/Screenshots/`. |
 | Bug Fix Verification Test | `GolfVR.EditorTools.BugFixVerificationTest.Run` | Regression test for the four bugs reported from real playtesting (below): a real sink no longer teleports the ball, a debug sink still snaps it safely, the reset button has no dangling event listeners and still fires, and the putter's attachment flags include `SnapOnAttach`. |
 | Hole Select Panel Test | `GolfVR.EditorTools.HoleSelectPanelTest.Run` | All 9 `JumpToHoleButton`s exist with the right hole index and no dangling listeners, jumping forward then backward both land correctly, and the fireworks-test button fires without exceptions. |
+| Physics Putt Test | `GolfVR.EditorTools.PhysicsPuttTest.Run` | Real-physics putts: rolls the ball from the tee toward the cup at 3 and 5 m/s with `Physics.Simulate` (replaying the engine's callbacks) on the six holes with a clear line, and requires each to fall into the physical cup, register, and advance. Args: `-testHoles 0,4`, `-testSpeeds 2,6`, `-testDrag`, `-testAngDrag`. Unlike the reflective playtest (which teleports the ball onto the cup), this exercises real cup geometry, ball damping and sleeping. |
+| Grip Pose Test | `GolfVR.EditorTools.GripPoseTest.Run` | Replays SteamVR's `Hand.AttachObject` snap maths against stand-in hand poses: the Grip point lands exactly on the hand, the head hangs ~0.85 m below it and out in front by the chosen lean angle regardless of how the putter was lying, the hand model isn't dragged to the putter's pivot, and the grip is sticky. |
 
 ### Manually testing the sink/celebration flow
 
@@ -101,9 +103,14 @@ Working entirely headless (no live Editor / VR headset available for direct test
 9. **Reset button did nothing when pressed** — the `AddResetRoundButton` build script had deleted the stock `ButtonEffect` component (to replace its hardcoded revert-to-white with `ResetRoundButton`'s real-color restore), but Unity's prefab-instance override recorded the now-dangling `onButtonDown`/`onButtonUp` persistent listeners as `m_Target: {fileID: 0}` instead of actually removing them. A `UnityEvent` invoking a persistent call whose target is null throws mid-`Invoke()`, which aborted the call before it ever reached `ResetRoundButton`'s own dynamically-added listener — so the button never did anything. Confirmed by finding exactly one dangling listener on each event in the saved scene data. `UnityEventTools.RemovePersistentListener` turned out not to be enough to fix this on an already-diverged prefab instance (it re-nulls the slot but doesn't shrink the array, so the dangling call comes right back on the next save); actually clearing it required going through `SerializedObject`/`SerializedProperty` and setting `m_PersistentCalls.m_Calls.arraySize` to 0 directly.
 10. **Instructions board too small for its own text** — the "HOW TO PLAY" board was sized for far less text than it actually holds (15 lines once every blank spacer line is counted); most lines floated directly against the sky with no backing at all. Tightened the copy to 8 lines (still wrapped so no single line is too wide) and grew the board to comfortably fit them, resizing the text and frame to preserve their original absolute (world-space) size rather than just inheriting the bigger board's scale.
 
+11. **Hand model drawn at the club head, putter not "held" at the shaft** — `Interactable.handFollowTransform` (on by default) makes the SteamVR hand model render at the interactable's *root pivot*. The putter's root sits at the club head, so the visible hand jumped to the bottom of the club even though the controller (and the `Grip` attach point) were at the top. Turned off, so the hand stays on the controller at the grip. Also lengthened the putter from 0.65 m to 0.9 m (a real putter's length, so the head can reach the ball without stooping), made it lean forward by a configurable angle, and made it *sticky* (`Throwable.stickyGrip`, a small addition to Valve's script): it stays in the hand until the reset kiosk releases it.
+12. **Sinking the ball was unreliable and happened away from the cup** — the old rule sank the ball the moment it touched the invisible 0.35 m trigger sphere around the cup (nowhere near the cup itself) and relied on `OnTriggerStay`, which Unity stops sending once the ball sleeps; a putt slower than ~5.5 m/s never even reached it because the ball's drag stopped it several metres short. Replaced with per-physics-step distance logic on the active hole only: a slow ball within 0.3 m is gently pulled toward the cup, and it counts once it is within 0.14 m *and* down below the green's surface, i.e. actually in the cup. A sink on a non-active hole is ignored; celebration/banner exceptions can no longer block the advance to the next hole (and a watchdog recovers a stuck transition). Ball drag/angular drag lowered 0.4/0.6 → 0.15/0.15 so an ordinary 2-5 m/s putt now rolls the 6 m to the cup (`PhysicsPuttTest`).
+
 If you notice anything else that looks wrong in a live headset session that these tools didn't catch, it's worth adding as a case to `ExtendedFeatureTest` or `BugFixVerificationTest` so it stays caught.
 
 ## Known limitations
 
 - The fireworks day→night→day fade (`FireworksCelebrationController`) animates using `Time.deltaTime`, which only advances in a real running Play session — Edit-mode batch scripts can't pump it the way they can a `WaitForSeconds`-based coroutine. Its logic (skybox swap, light dimming, burst spawning, horn audio) is verified piece-by-piece and a forced mid-show screenshot confirms the visuals, but its real-time pacing (does 1 second actually feel like 1 second) has not been verified in a live Play session — worth a quick check next time you're in the Editor or headset.
 - From an elevated/aerial camera angle you can see a faint checkerboard pattern on the horizon beyond the green grass ring — that's SteamVR's own sample "floor far" material (deliberately a chaperone-style grid, used here as a far-distance ground filler), not a bug; it's barely visible at normal player eye height.
+- `Assets/SteamVR/InteractionSystem/Core/Scripts/Throwable.cs` carries one GolfVR addition (`stickyGrip`). Re-importing or upgrading the SteamVR plugin will overwrite it; re-apply it (two lines) or the putter will drop when the grip is released.
+- The putter's exact hold angle can't be verified without a headset: the geometry (grip on the hand, head hanging below and ahead by the chosen lean) is tested, but which lean *feels* right depends on the player's wrist, hence the trackpad-right cycle.

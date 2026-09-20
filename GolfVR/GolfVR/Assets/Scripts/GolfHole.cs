@@ -63,32 +63,85 @@ namespace GolfVR
             }
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            if (_isCompleted) return;
+        [Header("Cup Capture")]
+        [Tooltip("Horizontal distance (m) from the cup center inside which a slow ball is gently pulled toward the cup")]
+        public float captureRadius = 0.30f;
 
-            GolfBall ball = other.GetComponent<GolfBall>();
-            if (ball != null)
+        [Tooltip("Balls faster than this (m/s) inside the capture radius skip over the cup instead of being pulled in")]
+        public float captureMaxSpeed = 2.0f;
+
+        [Tooltip("Pull strength (m/s^2) toward the cup center while a slow ball is inside the capture radius")]
+        public float capturePull = 4.0f;
+
+        [Tooltip("Horizontal distance (m) from the cup center within which a ball that has dropped below the green counts as holed")]
+        public float sinkRadius = 0.14f;
+
+        [Tooltip("The ball counts as holed once its center is below this height (m) above the hole's origin -- the green surface around the cup sits ~0.10 above it, a ball resting on the green sits ~0.15")]
+        public float sinkHeight = 0.11f;
+
+        private Rigidbody _ballBody;
+
+        private bool IsActiveHole()
+        {
+            MiniGolfGameManager m = MiniGolfGameManager.Instance;
+            if (m == null || m.holes == null) return true; // no manager: stand-alone hole, always live
+            int i = m.CurrentHoleIndex;
+            return i >= 0 && i < m.holes.Length && m.holes[i] == this;
+        }
+
+        /// <summary>
+        /// Distance-based cup logic, run every physics step for the ACTIVE
+        /// hole only. Deliberately not built on trigger callbacks: Unity
+        /// stops sending OnTriggerStay to a sleeping rigidbody, and a ball
+        /// that has just come to rest is exactly the case that needs to
+        /// register. Two stages:
+        ///  1. capture assist -- a slow ball within captureRadius is pulled
+        ///     toward the cup center so a near miss still drops in;
+        ///  2. sink -- once the ball is within sinkRadius AND below the
+        ///     green's surface (i.e. actually in the physical cup), it counts.
+        /// </summary>
+        private void FixedUpdate()
+        {
+            if (_isCompleted || !IsActiveHole()) return;
+
+            MiniGolfGameManager m = MiniGolfGameManager.Instance;
+            GolfBall ball = m != null ? m.golfBall : null;
+            if (ball == null) return;
+            if (_ballBody == null) _ballBody = ball.GetComponent<Rigidbody>();
+            if (_ballBody == null) return;
+
+            Vector3 toCup = transform.position - ball.transform.position;
+            float heightAboveCupOrigin = -toCup.y;
+            toCup.y = 0f;
+            float dist = toCup.magnitude;
+
+            if (dist < sinkRadius && heightAboveCupOrigin < sinkHeight)
             {
-                // Cut its speed immediately so a fast putt can't blow straight
-                // through the trigger before OnTriggerStay gets a chance to sink it.
-                ball.DampenForCup();
+                Sink(ball, snapBallToHole: false);
+                return;
+            }
+
+            if (dist < captureRadius && dist > 0.001f && heightAboveCupOrigin >= sinkHeight
+                && _ballBody.velocity.magnitude < captureMaxSpeed)
+            {
+                _ballBody.AddForce(toCup / dist * capturePull, ForceMode.Acceleration);
             }
         }
 
         private void OnTriggerStay(Collider other)
         {
-            if (_isCompleted) return;
+            // Secondary path (also what the headless playtest drives directly):
+            // a ball already down in the cup counts even if FixedUpdate hasn't
+            // run yet.
+            if (_isCompleted || !IsActiveHole()) return;
 
             GolfBall ball = other.GetComponent<GolfBall>();
             if (ball == null) return;
 
-            // Checked every physics frame the ball is inside the trigger, rather
-            // than a single delayed snapshot -- a one-shot check could catch the
-            // ball mid-roll on the far side of the cup and never retry even if
-            // it settles in a moment later.
-            float dist = Vector3.Distance(ball.transform.position, transform.position);
-            if (dist < 0.6f)
+            Vector3 flat = ball.transform.position - transform.position;
+            float height = flat.y;
+            flat.y = 0f;
+            if (flat.magnitude < sinkRadius && height < sinkHeight)
             {
                 Sink(ball, snapBallToHole: false);
             }
@@ -115,8 +168,18 @@ namespace GolfVR
                 ball.StopBall();
             }
 
-            // Trigger celebratory fanfare and visuals
-            PlayCelebration();
+            Debug.Log($"[GolfVR] Hole {holeNumber} SUNK (ball at {(ball != null ? ball.transform.position.ToString("F2") : "n/a")}).");
+
+            // The celebration is decoration -- an exception inside it must
+            // never stop the round from advancing to the next hole.
+            try
+            {
+                PlayCelebration();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
 
             if (MiniGolfGameManager.Instance != null)
             {

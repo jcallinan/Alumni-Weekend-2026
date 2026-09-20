@@ -60,6 +60,15 @@ namespace GolfVR
         [Tooltip("Color of the generated grip wrap")]
         public Color gripColor = new Color(0.08f, 0.08f, 0.08f);
 
+        [Header("Grip Pose")]
+        [Tooltip("Degrees the shaft leans forward while held (club head out ahead of the hand, like a real putting stance). While holding the putter, the SnapTurnRight button (Vive trackpad, right side) cycles through the presets below and the choice is remembered.")]
+        public float gripPitchDegrees = 15f;
+
+        [Tooltip("Forward-lean presets, in degrees, that the SnapTurnRight button cycles through while the putter is held")]
+        public float[] gripPitchPresets = { 0f, 15f, 30f, 45f, 60f };
+
+        private const string GripPitchPrefKey = "GolfVR.PutterGripPitchDegrees";
+
         // Velocity tracking for club head
         private Vector3 _lastHeadPosition;
         private Vector3 _headVelocity;
@@ -67,6 +76,9 @@ namespace GolfVR
         private Interactable _interactable;
         private Rigidbody _rigidbody;
         private AudioClip _generatedHitClip;
+        private Throwable _throwable;
+        private SteamVR_Action_Boolean _cycleAction;
+        private bool _cycleActionLookedUp;
 
         public bool IsHeld => _currentHoldingHand != null;
 
@@ -74,6 +86,7 @@ namespace GolfVR
         {
             _rigidbody = GetComponent<Rigidbody>();
             _interactable = GetComponent<Interactable>();
+            _throwable = GetComponent<Throwable>();
 
             if (clubHead == null)
             {
@@ -95,6 +108,9 @@ namespace GolfVR
                     audioSource.playOnAwake = false;
                 }
             }
+
+            gripPitchDegrees = PlayerPrefs.GetFloat(GripPitchPrefKey, gripPitchDegrees);
+            ApplyGripPose();
 
             GeneratePuttAudioClip();
             BuildVisualsIfMissing();
@@ -288,6 +304,98 @@ namespace GolfVR
             bar.transform.localRotation = Quaternion.FromToRotation(Vector3.up, delta.normalized);
             bar.transform.localScale = new Vector3(radius * 2f, length * 0.5f, radius * 2f);
             bar.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        }
+
+        /// <summary>
+        /// Tilts the Grip attach transform so the shaft leans forward by
+        /// gripPitchDegrees when held. The Hand's SnapOnAttach logic keeps
+        /// the object's rotation relative to the attachmentOffset (Grip)
+        /// transform equal to the hand's, so rotating Grip about the putter's
+        /// local X axis tilts the whole club in the hand: the head swings out
+        /// in front of the hand while the hand stays at the top of the shaft.
+        /// </summary>
+        public void ApplyGripPose()
+        {
+            if (gripPoint == null || gripPoint == transform) return;
+            gripPoint.localRotation = Quaternion.Euler(gripPitchDegrees, 0f, 0f);
+        }
+
+        private void Update()
+        {
+            if (_currentHoldingHand == null) return;
+
+            if (_cycleAction == null && !_cycleActionLookedUp)
+            {
+                _cycleActionLookedUp = true;
+                try
+                {
+                    _cycleAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("SnapTurnRight");
+                }
+                catch
+                {
+                    _cycleAction = null;
+                }
+            }
+
+            if (_cycleAction != null && _cycleAction.GetStateDown(SteamVR_Input_Sources.Any))
+            {
+                CycleGripPitch();
+            }
+        }
+
+        /// <summary>
+        /// Advances to the next forward-lean preset, remembers it, and (if the
+        /// putter is in a hand right now) re-attaches so the new angle takes
+        /// effect immediately. Lets the player dial in whichever angle feels
+        /// natural for their wrist without a rebuild.
+        /// </summary>
+        public void CycleGripPitch()
+        {
+            if (gripPitchPresets == null || gripPitchPresets.Length == 0) return;
+
+            int next = 0;
+            for (int i = 0; i < gripPitchPresets.Length; i++)
+            {
+                if (Mathf.Approximately(gripPitchPresets[i], gripPitchDegrees))
+                {
+                    next = (i + 1) % gripPitchPresets.Length;
+                    break;
+                }
+            }
+
+            gripPitchDegrees = gripPitchPresets[next];
+            PlayerPrefs.SetFloat(GripPitchPrefKey, gripPitchDegrees);
+            ApplyGripPose();
+
+            if (_currentHoldingHand != null)
+            {
+                Hand hand = _currentHoldingHand;
+                Hand.AttachmentFlags flags = _throwable != null
+                    ? _throwable.attachmentFlags
+                    : Hand.AttachmentFlags.SnapOnAttach | Hand.AttachmentFlags.ParentToHand | Hand.AttachmentFlags.DetachFromOtherHand | Hand.AttachmentFlags.DetachOthers | Hand.AttachmentFlags.TurnOnKinematic;
+                hand.AttachObject(gameObject, GrabTypes.Grip, flags, gripPoint);
+            }
+
+            Debug.Log($"[GolfVR] Putter grip angle set to {gripPitchDegrees:F0} degrees.");
+            if (MiniGolfGameManager.Instance != null && MiniGolfGameManager.Instance.scoreboard != null)
+            {
+                MiniGolfGameManager.Instance.scoreboard.ShowBanner($"Putter angle: {gripPitchDegrees:F0}°  (press trackpad right to change)", 2.5f);
+            }
+        }
+
+        /// <summary>
+        /// The putter is "sticky": once picked up it stays in the hand even
+        /// when the grip button is let go (see Throwable.stickyGrip), so the
+        /// only way to put it down is for code to let go of it -- e.g. the
+        /// staff reset kiosk.
+        /// </summary>
+        public void ReleaseFromHand()
+        {
+            if (_currentHoldingHand == null) return;
+
+            Hand hand = _currentHoldingHand;
+            _currentHoldingHand = null;
+            hand.DetachObject(gameObject, false);
         }
 
         /// <summary>

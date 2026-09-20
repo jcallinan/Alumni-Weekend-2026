@@ -22,7 +22,7 @@ namespace GolfVR.EditorTools
         public static void Run()
         {
             _failures = 0;
-            EditorSceneManager.OpenScene("Assets/Scenes/MiniGolf_AlumniCourse_v3.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
 
             MiniGolfGameManager manager = Object.FindObjectOfType<MiniGolfGameManager>();
             GolfBall ball = Object.FindObjectOfType<GolfBall>();

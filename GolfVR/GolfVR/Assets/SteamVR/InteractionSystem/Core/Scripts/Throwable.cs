@@ -32,6 +32,9 @@ namespace Valve.VR.InteractionSystem
 
         public float scaleReleaseVelocity = 1.1f;
 
+        [Tooltip("GolfVR addition: when true the object stays attached to the hand after the grab button is released, and can only be detached from code")]
+        public bool stickyGrip = false;
+
         [Tooltip("The release velocity magnitude representing the end of the scale release velocity curve. (-1 to disable)")]
         public float scaleReleaseVelocityThreshold = -1.0f;
         [Tooltip("Use this curve to ease into the scaled release velocity based on the magnitude of the measured release velocity. This allows greater differentiation between a drop, toss, and throw.")]
@@ -232,7 +235,9 @@ namespace Valve.VR.InteractionSystem
         {
 
 
-            if (hand.IsGrabEnding(this.gameObject))
+            // GolfVR: stickyGrip keeps the object in the hand after the grab
+            // button is released; it is only let go by code (DetachObject).
+            if (!stickyGrip && hand.IsGrabEnding(this.gameObject))
             {
                 hand.DetachObject(gameObject, restoreOriginalParent);
 
