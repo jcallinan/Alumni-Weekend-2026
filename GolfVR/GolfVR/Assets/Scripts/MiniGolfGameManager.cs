@@ -292,6 +292,51 @@ namespace GolfVR
             }
         }
 
+        /// <summary>
+        /// Testing convenience: jumps straight to any hole -- resetting
+        /// every hole's completed flag and the target hole's stroke count,
+        /// then teleporting the player and snapping the ball/putter to its
+        /// tee -- without needing to play through every prior hole first.
+        /// For the physical "pick a hole" panel used during in-headset
+        /// testing, so a specific hole's fairway/geometry can be checked
+        /// directly. Also doubles as a per-hole "put the ball and putter
+        /// back" button: pressing the button for whichever hole is already
+        /// active resets just that hole, in place.
+        /// </summary>
+        public void JumpToHole(int index)
+        {
+            if (holes == null || index < 0 || index >= holes.Length || holes[index] == null)
+            {
+                Debug.LogWarning($"[GolfVR] JumpToHole: index {index} is out of range.");
+                return;
+            }
+
+            _isGameFinished = false;
+            _isTransitioning = false;
+            _currentHoleIndex = index;
+
+            int count = holes.Length;
+            if (_strokesPerHole == null || _strokesPerHole.Length != count)
+            {
+                _strokesPerHole = new int[count];
+            }
+            for (int i = 0; i < count; i++)
+            {
+                if (holes[i] != null) holes[i].ResetHole();
+            }
+            _strokesPerHole[index] = 0;
+
+            SetupHole(index, repositionPutter: true);
+
+            if (scoreboard != null)
+            {
+                scoreboard.UpdateScoreboard(holes, _strokesPerHole, index);
+                scoreboard.ShowBanner($"JUMPED TO HOLE {index + 1}", 2.5f);
+            }
+
+            Debug.Log($"[GolfVR] Jumped to hole {index + 1}.");
+        }
+
 #if UNITY_EDITOR
         [Tooltip("Editor-only: press this key in Play mode to sink the current hole for quick testing")]
         public KeyCode debugSinkKey = KeyCode.K;

@@ -22,6 +22,7 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 - **Fireworks celebration**: every hole sunk triggers confetti + victory fanfare (as before) plus a new sequence — the sky fades to a night skybox, 9 colorful firework bursts go off over ~7 seconds with light flashes, two procedural horn blasts play, then it fades back to day (`FireworksCelebrationController`).
 - **Out-of-bounds handling**: a ball that falls off course gets a penalty stroke and resets to its last rest position.
 - **Reset-for-next-group kiosk**: a physical push-button near the entrance plaza (`ResetRoundButton`, built on SteamVR's own proven push-button interaction rather than a hand-rolled one) lets event staff reset the whole round — scores, ball, and putter all snapped back to Hole 1 — between groups without relaunching the app.
+- **"Pick a hole" testing panel**: right next to the reset kiosk, a 3x3 grid of 9 small buttons jumps straight to any hole (`JumpToHoleButton` → `MiniGolfGameManager.JumpToHole`), for testing a specific hole without playing through every one before it. Pressing the button for whichever hole is already active also works as a "put the ball and putter back" reset for just that hole. A 10th orange "FW" button plays the fireworks celebration directly (`TestFireworksButton`), so the show can be checked independently of the putter/sink working correctly.
 
 ## Screenshots
 
@@ -46,7 +47,10 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 **Reset-for-next-group kiosk**
 ![Reset round kiosk](Screenshots/07_reset_round_kiosk.png)
 
-The first six were captured headlessly (no live Editor session) via `Tools/GolfVR/Capture Documentation Screenshots` — see Testing Tools below. The seventh (kiosk) was captured the same way with an ad hoc one-off script during development and isn't part of that regenerable set.
+**"Pick a hole" testing panel**
+![Hole select panel](Screenshots/08_hole_select_panel.png)
+
+The first six were captured headlessly (no live Editor session) via `Tools/GolfVR/Capture Documentation Screenshots` — see Testing Tools below. The seventh and eighth (both kiosks) were captured the same way with ad hoc one-off scripts during development and aren't part of that regenerable set.
 
 ## Testing tools
 
@@ -66,6 +70,7 @@ unity run <project-path> --editor-version 2022.3.62f3 -- -executeMethod <FullMet
 | Capture Prefab Preview | `GolfVR.EditorTools.SceneCameraCapture.CapturePrefabPreview` | Instantiates a prefab (`-prefabPath`) and auto-frames a shot of it, without saving — for checking an asset's real look/scale before committing to using it. |
 | Capture Documentation Screenshots | `GolfVR.EditorTools.DocumentationScreenshots.Run` | Regenerates all six screenshots above into `Docs/Screenshots/`. |
 | Bug Fix Verification Test | `GolfVR.EditorTools.BugFixVerificationTest.Run` | Regression test for the four bugs reported from real playtesting (below): a real sink no longer teleports the ball, a debug sink still snaps it safely, the reset button has no dangling event listeners and still fires, and the putter's attachment flags include `SnapOnAttach`. |
+| Hole Select Panel Test | `GolfVR.EditorTools.HoleSelectPanelTest.Run` | All 9 `JumpToHoleButton`s exist with the right hole index and no dangling listeners, jumping forward then backward both land correctly, and the fireworks-test button fires without exceptions. |
 
 ### Manually testing the sink/celebration flow
 
@@ -73,6 +78,7 @@ unity run <project-path> --editor-version 2022.3.62f3 -- -executeMethod <FullMet
 
 - **Press `K`** during Play mode to sink whichever hole is currently active.
 - Or right-click the **Mini Golf Game Manager** component header in the Inspector and choose **"DEBUG: Sink Current Hole"**.
+- Or, in-headset, walk up to the **"pick a hole" panel** next to the reset kiosk and press whichever hole's button, then physically putt.
 
 Both run the real path — the ball snaps into the cup and the actual `OnHoleSunk` scoring/celebration logic fires — not a shortcut animation. Compiled out of real builds (`#if UNITY_EDITOR`).
 
