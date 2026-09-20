@@ -19,7 +19,7 @@ An interactive Mixed Reality and 3D web experience created for the **University 
   - Continuous slider control (0.05x to 1.5x) with fine-tuning step buttons and live metric readouts.
   - In-XR sizing panel and interactive controller scaling.
 - **Mixed Reality & WebXR**:
-  - Pass-through AR on Meta Quest headsets with 6DOF controller grabbing and inspection.
+  - Pass-through AR on supported WebXR headsets with 6DOF controller grabbing and inspection.
   - Interactive 3D OrbitControls for desktop/laptop/tablet browsers with smooth damping, zoom, and lighting.
 
 ## Running Locally
@@ -33,7 +33,7 @@ An interactive Mixed Reality and 3D web experience created for the **University 
    ```bash
    npm run serve
    ```
-   Open [https://localhost:8081](https://localhost:8081) in your browser or Meta Quest Browser.
+   Open [https://localhost:8081](https://localhost:8081) in a desktop browser or a WebXR-compatible headset browser.
 
 3. Build production bundle:
    ```bash
@@ -65,14 +65,14 @@ This builds `dist/` and pushes it directly to the `gh-pages` branch on GitHub. (
 
 ---
 
-## Viewing on Meta Quest Headset
+## Viewing in WebXR / AR
 
-1. Put on your **Meta Quest 2 / 3 / Pro** headset in the Marilyn Horne Hall VR Lab.
-2. Open the built-in **Meta Quest Browser**.
+1. Put on a **WebXR-compatible headset** in the Marilyn Horne Hall VR Lab.
+2. Open the browser on the headset.
 3. Navigate to:
    ```
    https://jcallinan.github.io/Alumni-Weekend-2026/
    ```
-4. Click **"Enter AR"** (or "Enter Mixed Reality").
+4. Click **"Enter AR"** or **"View in Mixed Reality"**.
 5. Look at the VR Lab floor or a table and tap the controller trigger to place the campus Panther statue into your room with full color passthrough.
 6. Use the floating UI panel to switch materials (Campus Bronze, Pitt Gold, Royal Blue) and adjust scale from desk miniature up to life-size monument.

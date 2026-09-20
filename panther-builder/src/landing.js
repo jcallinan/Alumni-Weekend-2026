@@ -28,17 +28,15 @@ export class InlineSystem extends System {
 		if (arButton) {
 			ARButton.convertToARButton(arButton, renderer, {
 				ENTER_XR_TEXT: 'View in Mixed Reality',
-				requiredFeatures: [
-					'hit-test',
-					'plane-detection',
-					'mesh-detection',
-					'anchors',
-				],
-				optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+				requiredFeatures: [],
+				optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
 				onUnsupported: () => {
-					arButton.style.display = 'none';
+					arButton.textContent = 'WebXR AR is not available on this device/browser';
+					arButton.disabled = true;
+					arButton.classList.add('disabled');
 					if (webLaunchButton) {
 						webLaunchButton.style.display = 'block';
+						webLaunchButton.textContent = 'Try a WebXR-compatible browser or headset';
 					}
 				},
 			});
@@ -46,10 +44,7 @@ export class InlineSystem extends System {
 
 		if (webLaunchButton) {
 			webLaunchButton.onclick = () => {
-				window.open(
-					'https://www.oculus.com/open_url/?url=' +
-						encodeURIComponent(window.location.href),
-				);
+				window.alert('This app requires a WebXR-compatible browser or headset to enter AR.');
 			};
 		}
 
