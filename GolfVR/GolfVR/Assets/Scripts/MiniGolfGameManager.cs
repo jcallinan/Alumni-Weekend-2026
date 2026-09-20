@@ -200,25 +200,37 @@ namespace GolfVR
                 TeleportPlayer(currentHole.playerTeeLocation.position, currentHole.playerTeeLocation.rotation);
             }
 
-            // 3. Place putter near player/ball if not currently held
-            if (repositionPutter && golfPutter != null && !golfPutter.IsHeld && currentHole.teePoint != null)
+            // 3. Putter: let go of it if it's in a hand (it's sticky) and put it on
+            // the ground right in front of where the player now stands, ready
+            // to be picked up again.
+            if (repositionPutter && golfPutter != null)
             {
-                // Tee markers are authored at ground level, but the actual
-                // fairway surface can sit well above that on raised or
-                // sloped course pieces -- raycast down to find it instead
-                // of assuming a fixed height.
-                Vector3 sideSpot = currentHole.teePoint.position + Vector3.right * 0.8f;
-                Vector3 castOrigin = sideSpot + Vector3.up * 3f;
-                float surfaceY = Physics.Raycast(castOrigin, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore)
-                    ? hit.point.y
-                    : currentHole.teePoint.position.y;
-
-                Vector3 putterPos = new Vector3(sideSpot.x, surfaceY + 0.5f, sideSpot.z);
-                golfPutter.ResetToPosition(putterPos, Quaternion.identity);
+                golfPutter.ReleaseFromHand();
+                PlacePutterForPickup(currentHole);
             }
 
             // 4. Scoreboard + "current hole" follow the player to this hole
             SetCurrentHole(index);
+        }
+
+        /// <summary>
+        /// Lays the putter flat on the ground just in front of and beside the
+        /// spot the player stands at for this hole, so it is right by their
+        /// feet after a reset or jump instead of somewhere across the green.
+        /// </summary>
+        private void PlacePutterForPickup(GolfHole hole)
+        {
+            Transform stand = hole.playerTeeLocation != null ? hole.playerTeeLocation : hole.teePoint;
+            if (stand == null) return;
+
+            Vector3 spot = stand.position + stand.forward * 0.45f + stand.right * 0.3f;
+            float surfaceY = Physics.Raycast(spot + Vector3.up * 3f, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore)
+                ? hit.point.y
+                : stand.position.y;
+
+            // Lying flat (shaft horizontal), a little above the ground so it settles.
+            Quaternion lying = Quaternion.LookRotation(stand.forward, Vector3.up) * Quaternion.Euler(0f, 0f, 90f);
+            golfPutter.ResetToPosition(new Vector3(spot.x, surfaceY + 0.1f, spot.z), lying);
         }
 
         /// <summary>

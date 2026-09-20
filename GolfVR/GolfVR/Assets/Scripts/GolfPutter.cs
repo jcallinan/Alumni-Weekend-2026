@@ -391,11 +391,25 @@ namespace GolfVR
         /// </summary>
         public void ReleaseFromHand()
         {
-            if (_currentHoldingHand == null) return;
-
-            Hand hand = _currentHoldingHand;
+            // Don't rely only on the cached hand: if the attach event was ever
+            // missed, the putter is still parented under a Hand.
+            Hand hand = _currentHoldingHand != null ? _currentHoldingHand : GetComponentInParent<Hand>();
             _currentHoldingHand = null;
-            hand.DetachObject(gameObject, false);
+            if (hand != null)
+            {
+                hand.DetachObject(gameObject, false);
+            }
+
+            // Make sure it is a free-standing physics object again.
+            if (transform.parent != null && transform.GetComponentInParent<Hand>() != null)
+            {
+                transform.SetParent(null, true);
+            }
+            if (_rigidbody != null)
+            {
+                _rigidbody.isKinematic = false;
+                _rigidbody.useGravity = true;
+            }
         }
 
         /// <summary>
@@ -403,10 +417,12 @@ namespace GolfVR
         /// </summary>
         public void ResetToPosition(Vector3 position, Quaternion rotation)
         {
+            if (_rigidbody.isKinematic) _rigidbody.isKinematic = false;
             _rigidbody.velocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
             transform.position = position;
             transform.rotation = rotation;
+            _lastHeadPosition = clubHead != null ? clubHead.position : position; // no phantom swing speed from the jump
         }
     }
 }

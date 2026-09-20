@@ -46,6 +46,7 @@ namespace GolfVR.EditorTools
             TestResetButtonHasNoDanglingListeners();
             TestResetButtonStillFires(manager);
             TestPutterAttachmentFlags();
+            TestResetAndJumpResetBallAndPutter(manager, putter);
 
             if (_failures == 0)
             {
@@ -153,6 +154,53 @@ namespace GolfVR.EditorTools
             {
                 _failures++;
                 Debug.LogError($"[BugFixVerify] Reset button fires: FAIL - CurrentHoleIndex is {manager.CurrentHoleIndex}, expected 0 after pressing.");
+            }
+        }
+
+        private static void TestResetAndJumpResetBallAndPutter(MiniGolfGameManager manager, GolfPutter putter)
+        {
+            if (putter == null)
+            {
+                _failures++;
+                Debug.LogError("[BugFixVerify] Reset/jump: FAIL - no putter in scene.");
+                return;
+            }
+
+            // --- Jump to hole 4 with the ball and putter left far away ---
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>()) b.transform.position = new Vector3(500f, 50f, 500f);
+            putter.transform.position = new Vector3(-500f, 50f, 500f);
+            manager.JumpToHole(3);
+
+            GolfHole hole4 = manager.holes[3];
+            GolfBall ball4 = manager.GetBallForHole(3);
+            float ballDist = Vector2.Distance(new Vector2(ball4.transform.position.x, ball4.transform.position.z), new Vector2(hole4.teePoint.position.x, hole4.teePoint.position.z));
+            float putterDist = Vector3.Distance(putter.transform.position, hole4.playerTeeLocation.position);
+            bool jumpOk = ballDist < 0.5f && putterDist < 2.5f;
+
+            // --- Full reset with everything scattered ---
+            foreach (GolfBall b in Object.FindObjectsOfType<GolfBall>()) b.transform.position = new Vector3(500f, 50f, 500f);
+            putter.transform.position = new Vector3(-500f, 50f, 500f);
+            manager.ResetForNextGroup();
+
+            bool allBallsOk = true;
+            for (int i = 0; i < manager.holes.Length; i++)
+            {
+                GolfBall b = manager.GetBallForHole(i);
+                Vector3 tee = manager.holes[i].teePoint.position;
+                float d = Vector2.Distance(new Vector2(b.transform.position.x, b.transform.position.z), new Vector2(tee.x, tee.z));
+                if (d > 0.5f) allBallsOk = false;
+            }
+            float putterDist1 = Vector3.Distance(putter.transform.position, manager.holes[0].playerTeeLocation.position);
+            bool resetOk = allBallsOk && putterDist1 < 2.5f && manager.CurrentHoleIndex == 0;
+
+            if (jumpOk && resetOk)
+            {
+                Debug.Log("[BugFixVerify] Reset/jump: OK (jumping to hole 4 put its ball on the tee and the putter by the player's feet; the full reset put all 9 balls on their tees and the putter by hole 1's tee).");
+            }
+            else
+            {
+                _failures++;
+                Debug.LogError($"[BugFixVerify] Reset/jump: FAIL - jump: ballDist={ballDist:F2}, putterDist={putterDist:F2}; reset: allBallsOnTees={allBallsOk}, putterDist={putterDist1:F2}, currentHole={manager.CurrentHoleIndex}.");
             }
         }
 
