@@ -190,12 +190,12 @@ namespace GolfVR.EditorTools
                 float d = Vector2.Distance(new Vector2(b.transform.position.x, b.transform.position.z), new Vector2(tee.x, tee.z));
                 if (d > 0.5f) allBallsOk = false;
             }
-            float putterDist1 = Vector3.Distance(putter.transform.position, manager.holes[0].playerTeeLocation.position);
-            bool resetOk = allBallsOk && putterDist1 < 2.5f && manager.CurrentHoleIndex == 0;
+            float putterDist1 = Vector3.Distance(putter.transform.position, putter.HomePosition);
+            bool resetOk = allBallsOk && putterDist1 < 0.2f && manager.CurrentHoleIndex == 0;
 
             if (jumpOk && resetOk)
             {
-                Debug.Log("[BugFixVerify] Reset/jump: OK (jumping to hole 4 put its ball on the tee and the putter by the player's feet; the full reset put all 9 balls on their tees and the putter by hole 1's tee).");
+                Debug.Log("[BugFixVerify] Reset/jump: OK (jumping to hole 4 put its ball on the tee and the putter by the player's feet; the full reset put all 9 balls on their tees and the putter back at its starting position on the table).");
             }
             else
             {

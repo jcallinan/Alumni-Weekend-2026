@@ -144,14 +144,15 @@ namespace GolfVR
                 }
             }
 
-            // A putter that sticks to the hand has to be let go before it can be
-            // put back on its stand for the next group.
+            // Player to Hole 1 and its ball to the tee. On a full reset the
+            // putter goes back to its STARTING position in the scene (the
+            // display table) -- letting go of it first if it's in a hand,
+            // since it's sticky.
+            SetupHole(0, false);
             if (repositionPutter && golfPutter != null)
             {
-                golfPutter.ReleaseFromHand();
+                golfPutter.ReturnHome();
             }
-
-            SetupHole(0, repositionPutter);
 
             if (scoreboard != null)
             {
