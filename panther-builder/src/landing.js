@@ -7,23 +7,23 @@ import { DoubleSide, Group, MeshBasicMaterial } from 'three';
 import { GlobalComponent, gltfLoader } from './global';
 import { PANTHER_FINISHES, PANTHER_SIZES } from './constants';
 
-import { ARButton } from 'ratk';
+import { ARButton, VRButton } from 'ratk';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { System } from 'elics';
 
 const CAMERA_ANGULAR_SPEED = Math.PI / 4;
 
-const getXRSessionOptions = (mode) => {
-	if (mode === 'immersive-vr') {
-		return {
-			optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
-		};
+const getSupportedXRMode = async () => {
+	if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
+		return null;
 	}
 
-	return {
-		requiredFeatures: [],
-		optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
-	};
+	const supportsAR = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
+	const supportsVR = await navigator.xr.isSessionSupported('immersive-vr').catch(() => false);
+
+	if (supportsAR) return 'ar';
+	if (supportsVR) return 'vr';
+	return null;
 };
 
 const requestWebXRSession = async (renderer, mode) => {
@@ -40,6 +40,19 @@ const requestWebXRSession = async (renderer, mode) => {
 		console.warn(`Unable to start ${mode} XR session`, error);
 		return false;
 	}
+};
+
+const getXRSessionOptions = (mode) => {
+	if (mode === 'immersive-vr') {
+		return {
+			optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+		};
+	}
+
+	return {
+		requiredFeatures: [],
+		optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
+	};
 };
 
 export class InlineSystem extends System {
@@ -62,41 +75,62 @@ export class InlineSystem extends System {
 
 		if (arButton) {
 			const configureButtonForMode = async () => {
-				if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
-					ARButton.convertToARButton(arButton, renderer, {
-						ENTER_XR_TEXT: 'View in Mixed Reality',
-						requiredFeatures: [],
-						optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
-						onUnsupported: () => {
-							if (supportMessage) {
-								supportMessage.hidden = false;
-							}
-						},
-					});
-					return;
-				}
-
-				const supportsAR = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
-				const supportsVR = await navigator.xr.isSessionSupported('immersive-vr').catch(() => false);
-				const mode = supportsAR ? 'immersive-ar' : supportsVR ? 'immersive-vr' : null;
+				const mode = await getSupportedXRMode();
 
 				if (!mode) {
 					if (supportMessage) {
 						supportMessage.hidden = false;
+						supportMessage.textContent =
+							"This browser/device doesn’t look like it supports WebXR AR yet. You can still try it, but it may not work.";
 					}
 					arButton.disabled = true;
 					return;
 				}
 
 				arButton.disabled = false;
-				arButton.onclick = async () => {
-					const started = await requestWebXRSession(renderer, mode);
-					if (!started && supportMessage) {
-						supportMessage.hidden = false;
-						supportMessage.textContent =
-							'This headset supports WebXR, but its browser could not start the required XR session.';
-					}
-				};
+
+				if (mode === 'ar') {
+					ARButton.convertToARButton(arButton, renderer, {
+						ENTER_XR_TEXT: 'View in Mixed Reality',
+						LEAVE_XR_TEXT: 'Exit Mixed Reality',
+						requiredFeatures: [],
+						optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor'],
+						onUnsupported: () => {
+							if (supportMessage) {
+								supportMessage.hidden = false;
+							}
+						},
+						onFeaturesUnsupported: (reason) => {
+							console.warn('AR session request failed', reason);
+							if (supportMessage) {
+								supportMessage.hidden = false;
+								supportMessage.textContent = 'This headset supports WebXR, but AR startup was denied by the browser.';
+							}
+						},
+					});
+					return;
+				}
+
+				VRButton.convertToVRButton(arButton, renderer, {
+					ENTER_XR_TEXT: 'Enter VR Experience',
+					LEAVE_XR_TEXT: 'Exit VR Experience',
+					requiredFeatures: [],
+					optionalFeatures: ['local-floor', 'bounded-floor'],
+					onUnsupported: () => {
+						if (supportMessage) {
+							supportMessage.hidden = false;
+							supportMessage.textContent =
+								"This browser/device doesn’t look like it supports WebXR VR yet. You can still try it, but it may not work.";
+						}
+					},
+					onFeaturesUnsupported: (reason) => {
+						console.warn('VR session request failed', reason);
+						if (supportMessage) {
+							supportMessage.hidden = false;
+							supportMessage.textContent = 'This headset supports WebXR, but VR startup was denied by the browser.';
+						}
+					},
+				});
 			};
 
 			configureButtonForMode();
