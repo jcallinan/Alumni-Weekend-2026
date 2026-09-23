@@ -13,6 +13,35 @@ import { System } from 'elics';
 
 const CAMERA_ANGULAR_SPEED = Math.PI / 4;
 
+const getXRSessionOptions = (mode) => {
+	if (mode === 'immersive-vr') {
+		return {
+			optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
+		};
+	}
+
+	return {
+		requiredFeatures: [],
+		optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
+	};
+};
+
+const requestWebXRSession = async (renderer, mode) => {
+	if (!navigator.xr || typeof navigator.xr.requestSession !== 'function') {
+		return false;
+	}
+
+	try {
+		renderer.xr.setReferenceSpaceType('local-floor');
+		const session = await navigator.xr.requestSession(mode, getXRSessionOptions(mode));
+		await renderer.xr.setSession(session);
+		return true;
+	} catch (error) {
+		console.warn(`Unable to start ${mode} XR session`, error);
+		return false;
+	}
+};
+
 export class InlineSystem extends System {
 	init() {
 		this.needsSetup = true;
@@ -32,16 +61,45 @@ export class InlineSystem extends System {
 		}
 
 		if (arButton) {
-			ARButton.convertToARButton(arButton, renderer, {
-				ENTER_XR_TEXT: 'View in Mixed Reality',
-				requiredFeatures: [],
-				optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
-				onUnsupported: () => {
+			const configureButtonForMode = async () => {
+				if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
+					ARButton.convertToARButton(arButton, renderer, {
+						ENTER_XR_TEXT: 'View in Mixed Reality',
+						requiredFeatures: [],
+						optionalFeatures: ['hit-test', 'local-floor', 'bounded-floor', 'layers'],
+						onUnsupported: () => {
+							if (supportMessage) {
+								supportMessage.hidden = false;
+							}
+						},
+					});
+					return;
+				}
+
+				const supportsAR = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
+				const supportsVR = await navigator.xr.isSessionSupported('immersive-vr').catch(() => false);
+				const mode = supportsAR ? 'immersive-ar' : supportsVR ? 'immersive-vr' : null;
+
+				if (!mode) {
 					if (supportMessage) {
 						supportMessage.hidden = false;
 					}
-				},
-			});
+					arButton.disabled = true;
+					return;
+				}
+
+				arButton.disabled = false;
+				arButton.onclick = async () => {
+					const started = await requestWebXRSession(renderer, mode);
+					if (!started && supportMessage) {
+						supportMessage.hidden = false;
+						supportMessage.textContent =
+							'This headset supports WebXR, but its browser could not start the required XR session.';
+					}
+				};
+			};
+
+			configureButtonForMode();
 		}
 
 		if (webLaunchButton) {
