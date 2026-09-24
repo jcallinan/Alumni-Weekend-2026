@@ -70,7 +70,26 @@ export const setupScene = () => {
 
 	renderer.xr.addEventListener('sessionstart', () => {
 		const session = renderer.xr.getSession();
-		session.updateTargetFrameRate(72);
+		if (!session) {
+			console.warn('[XR debug] XR session started without a session object');
+			return;
+		}
+		if (typeof session.updateTargetFrameRate !== 'function') {
+			console.warn('[XR debug] updateTargetFrameRate unsupported on this XR session', {
+				mode: session.mode,
+				type: typeof session.updateTargetFrameRate,
+			});
+			return;
+		}
+		try {
+			session.updateTargetFrameRate(72);
+			console.debug('[XR debug] updateTargetFrameRate set to 72', { mode: session.mode });
+		} catch (error) {
+			console.warn('[XR debug] updateTargetFrameRate rejected by XR browser', {
+				error: String(error),
+				mode: session.mode,
+			});
+		}
 	});
 
 	document.getElementById('ar-button').addEventListener('click', () => {
