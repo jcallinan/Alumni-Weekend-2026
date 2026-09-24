@@ -1,15 +1,16 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Valve.VR.InteractionSystem;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace GolfVR.EditorTools
 {
     /// <summary>
-    /// Checks the main menu: it is the first scene in Build Settings, every menu
-    /// button targets a scene that exists and is enabled in Build Settings, the
-    /// buttons have no dangling persistent listeners, and the return-to-menu
-    /// component's scene name matches the menu scene.
+    /// Checks the flat, mouse-driven main menu: it is the first scene in Build
+    /// Settings, has an EventSystem and a Camera (no VR rig needed), every scene
+    /// button targets a scene that exists and is enabled in Build Settings, and
+    /// the return-to-menu component's scene name matches the menu scene.
     /// </summary>
     public static class MainMenuTest
     {
@@ -28,10 +29,14 @@ namespace GolfVR.EditorTools
             if (SceneMenuReturn.MenuSceneName != "MainMenu")
                 Fail("SceneMenuReturn.MenuSceneName does not match the menu scene name.");
 
-            var buttons = Object.FindObjectsOfType<SceneLoadButton>();
-            if (buttons.Length != 5) Fail($"expected 5 menu buttons, found {buttons.Length}");
+            if (Object.FindObjectOfType<EventSystem>() == null) Fail("no EventSystem: mouse clicks would do nothing");
+            if (Object.FindObjectOfType<Camera>() == null) Fail("no Camera in the menu scene");
+            var canvas = Object.FindObjectOfType<Canvas>();
+            if (canvas == null || canvas.GetComponent<GraphicRaycaster>() == null) Fail("no Canvas with a GraphicRaycaster");
 
+            int sceneButtons = 0;
             string[] required = { "ICARUS_v1", "ICARUS_TwoHole_v1", "New_Sample", "Dom_v4" };
+            var buttons = Object.FindObjectsOfType<MenuButton>();
             foreach (string req in required)
             {
                 bool found = false;
@@ -41,19 +46,21 @@ namespace GolfVR.EditorTools
 
             foreach (var b in buttons)
             {
+                var ui = b.GetComponent<Button>();
+                if (ui == null || ui.onClick.GetPersistentEventCount() != 0) Fail($"button '{b.name}' has no Button or has stray persistent listeners");
+                if (b.quitApplication) continue;
+
+                sceneButtons++;
                 string path = "Assets/Scenes/" + b.sceneName + ".unity";
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null) Fail($"button '{b.sceneName}' points at a scene that doesn't exist");
 
                 bool inBuild = false;
                 foreach (var s in scenes) if (s.path == path && s.enabled) inBuild = true;
                 if (!inBuild) Fail($"scene '{b.sceneName}' is not enabled in Build Settings");
-
-                var hb = b.GetComponent<HoverButton>();
-                if (hb == null || hb.onButtonDown.GetPersistentEventCount() != 0 || hb.onButtonUp.GetPersistentEventCount() != 0)
-                    Fail($"button '{b.sceneName}' has a missing HoverButton or dangling persistent listeners");
             }
+            if (sceneButtons != 5) Fail($"expected 5 scene buttons, found {sceneButtons}");
 
-            if (_failures == 0) Debug.Log("[MenuTest] RESULT: PASS - menu is first in Build Settings; 5 buttons -> existing, enabled scenes; no dangling listeners.");
+            if (_failures == 0) Debug.Log("[MenuTest] RESULT: PASS - flat mouse menu (Camera + Canvas + EventSystem) is first in Build Settings; 5 buttons -> existing, enabled scenes.");
             else Debug.LogError($"[MenuTest] RESULT: FAIL - {_failures} check(s) failed.");
         }
 

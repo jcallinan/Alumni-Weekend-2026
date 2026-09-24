@@ -48,12 +48,12 @@ The dev server uses a self-signed certificate; accept the browser warning once (
 A VR mini-golf and golf-practice experience in **Unity 2022.3.62f3** with **SteamVR**, built for the **HTC Vive Pro** (Vive wand controllers). Full technical notes, testing tools and the list of bugs found/fixed are in [`GolfVR/GolfVR/Docs/README.md`](GolfVR/GolfVR/Docs/README.md).
 
 ### What's in it
-Everything is launched from a **main menu** (`MainMenu.unity`, first scene in Build Settings). Push a button with your hand to pick:
+Everything is launched from a **main menu** (`MainMenu.unity`, first scene in Build Settings). It is a plain flat screen with buttons you **click with the mouse** (no VR needed for the menu); pick:
 
 | Menu button | Scene | What it is |
 | :--- | :--- | :--- |
-| ICARUS 9 holes | `ICARUS_v1` | The full 9-hole course. **Every hole has its own ball** waiting at its tee; scores per hole, fireworks + horns on every hole sunk, scoreboard that follows you, NEXT HOLE buttons at every tee, a staff reset kiosk and a "pick a hole" test panel |
-| ICARUS 2 holes | `ICARUS_TwoHole_v1` | Holes 1 and 2 only, with an invisible fence and invisible walls around the fairways |
+| ICARUS 9 Hole Course | `ICARUS_v1` | The full 9-hole course. **Every hole has its own ball** waiting at its tee; scores per hole, fireworks + horns on every hole sunk, scoreboard that follows you, NEXT HOLE buttons at every tee, a staff reset kiosk and a "pick a hole" test panel |
+| ICARUS 2 Hole Course | `ICARUS_TwoHole_v1` | Holes 1 and 2 only, with an invisible fence and invisible walls around the fairways |
 | New Sample | `New_Sample` | Sample / experimental scene |
 | Dom v4 | `Dom_v4` | Dom's scene |
 | Driving range | `ICARUS_DrivingRange_v1` | Hit a driver off a tee: 3D ball flight with a coloured trail, carry + total distance in yards/metres, a history board, and a fresh ball after every shot |
@@ -80,7 +80,7 @@ Push-buttons are pressed by poking them with your hand. On the course, the **red
 1. Unity Hub -> **Add project from disk** -> select the `GolfVR/GolfVR` folder -> open with 2022.3.62f3.
 2. Open **`Assets/Scenes/MainMenu.unity`** (all scenes are already listed in *File -> Build Settings*).
 3. Start SteamVR, put the headset on, and press **Play**.
-4. Push a menu button to pick an experience. To come back, press and hold the MENU button.
+4. Click a menu button with the mouse to pick an experience (the menu shows on the monitor, not in the headset). To come back, press and hold the MENU button on a controller, or press Esc.
 
 To try a single scene directly, open it (e.g. `ICARUS_v1`) and press Play - the hold-MENU return still works, but you need the menu scene listed in Build Settings (it is).
 
