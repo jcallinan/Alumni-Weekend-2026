@@ -402,7 +402,7 @@ namespace GolfVR
 
                 int totalDiff = totalStrokes - totalPar;
                 string totalDiffStr = totalDiff == 0 ? "Even Par" : (totalDiff > 0 ? $"+{totalDiff}" : $"{totalDiff}");
-                string finalMsg = $"🏆 9-HOLE CHAMPIONSHIP COMPLETE! 🏆\nTotal: {totalStrokes} Strokes ({totalDiffStr})\nThank you for visiting the UPB VR Lab!";
+                string finalMsg = $"🏆 {holes.Length}-HOLE CHAMPIONSHIP COMPLETE! 🏆\nTotal: {totalStrokes} Strokes ({totalDiffStr})\nThank you for visiting the UPB VR Lab!";
 
                 try
                 {

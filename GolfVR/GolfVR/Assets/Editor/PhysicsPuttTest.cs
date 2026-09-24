@@ -25,7 +25,7 @@ namespace GolfVR.EditorTools
         [MenuItem("Tools/GolfVR/Physics Putt Test")]
         public static void Run()
         {
-            EditorSceneManager.OpenScene("Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(GetArg("-testScene") ?? "Assets/Scenes/ICARUS_v1.unity", OpenSceneMode.Single);
             MiniGolfGameManager manager = Object.FindObjectOfType<MiniGolfGameManager>();
             GolfBall ball = Object.FindObjectOfType<GolfBall>();
             GolfPutter putter = Object.FindObjectOfType<GolfPutter>();
@@ -99,6 +99,8 @@ namespace GolfVR.EditorTools
             Vector3 toHole = hole.transform.position - ball.transform.position;
             toHole.y = 0f;
             Vector3 dir = toHole.normalized;
+            string angArg = GetArg("-testAngle");
+            if (angArg != null) dir = Quaternion.Euler(0f, float.Parse(angArg, System.Globalization.CultureInfo.InvariantCulture), 0f) * dir;
             Vector3 start = ball.transform.position;
             ball.ReceivePutt(dir * speed);
 
