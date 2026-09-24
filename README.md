@@ -1,123 +1,104 @@
 # UPB Alumni Weekend 2026 - VR Lab Showcases
-**University of Pittsburgh at Bradford**  
-**Marilyn Horne Hall VR Lab**
 
-This repository contains two interactive Virtual & Mixed Reality showcase projects developed for UPB Alumni & Family Weekend:
+**University of Pittsburgh at Bradford - Marilyn Horne Hall VR Lab**
 
-1. **`panther-builder/`**: WebXR Mixed Reality / AR Pitt Bradford Panther 3D Customizer.
-2. *`GolfVR/`**: 9-Hole Championship Mini Golf VR Experience in Unity with SteamVR, featuring the authentic campus Panther statue monument.
+This repository holds two interactive Virtual / Mixed Reality showcases built for UPB Alumni & Family Weekend 2026:
+
+| Project | What it is | Runs on |
+| :--- | :--- | :--- |
+| [`panther-builder/`](panther-builder/) | **Panther Customizer** - a WebXR / 3D web app that puts the campus Panther statue in your room and lets you change its finish and size | Any WebXR headset browser (Meta Quest Browser), or a desktop browser |
+| [`GolfVR/GolfVR/`](GolfVR/GolfVR/) | **VR Mini Golf + Driving Range** - a Unity / SteamVR experience with a 9-hole course, a 2-hole variant, a driving range and a main menu | Windows PC + SteamVR, tested with an **HTC Vive Pro** and Vive wand controllers |
 
 ---
 
-## Project 1: WebXR Panther Customizer (`panther-builder/`)
+## Project 1: Panther Customizer (`panther-builder/`)
 
-A WebXR Mixed Reality application ported from Meta's WebXR Showcase framework. It showcases the authentic photogrammetry 3D scan of the campus Pitt Bradford Panther statue with custom finishes and dynamic scaling.
+An interactive Mixed Reality and 3D web experience built around a photogrammetry scan of the Pitt Bradford Panther statue. Details and screenshots: [`panther-builder/README.md`](panther-builder/README.md).
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ or v20+ recommended)
-- A modern WebXR-capable browser:
-  - Tested in VR Lab: Meta Quest Browser on Meta Quest 2, 3, or Pro.
-  - On Desktop: Chrome, Edge, or Firefox (includes mouse OrbitControls fallback).
+**Try it now (headset ready):** <https://jcallinan.github.io/Alumni-Weekend-2026/>
 
-### Running in Development
+### Using it in a headset
+1. Open the browser in the headset (e.g. **Meta Quest Browser**).
+2. Go to `https://jcallinan.github.io/Alumni-Weekend-2026/`.
+3. Click **Enter AR** / **View in Mixed Reality** and allow the permission prompts.
+4. Look at the floor or a table and pull the controller trigger to place the Panther.
+5. Use the floating panel to switch finishes (Campus Scan, Pitt Royal Blue, Pitt Gold, Cast Bronze, White Marble, Bradford Onyx) and to resize it from a 20 cm desk model up to the 2.7 m life-size statue (or 4 m "monumental").
+
+On a desktop / laptop / tablet it opens in a normal 3D viewer instead - drag to orbit, scroll to zoom.
+
+### Running it locally
+Requires [Node.js](https://nodejs.org/) 18+.
 ```bash
 cd panther-builder
 npm install
-npm start
+npm run serve      # https dev server at https://localhost:8081 (also reachable from a headset on the same Wi-Fi via your PC's IP)
+npm test           # unit tests (node --test)
+npm run build      # production bundle into dist/
 ```
-- Development server starts at `https://localhost:8081` (or your local IP).
-- Open the URL inside the **Meta Quest Browser** on the same Wi-Fi network.
-- Click **"Enter AR"** to place the Panther on the floor or tables in the VR Lab with full color passthrough.
+The dev server uses a self-signed certificate; accept the browser warning once (WebXR requires HTTPS).
 
-### Live GitHub Pages URL (Headset Ready)
-The WebXR Panther Customizer is deployed directly to GitHub Pages with HTTPS:
-> **Headset URL**: **`https://jcallinan.github.io/Alumni-Weekend-2026/`**
-
-Simply open the **Meta Quest Browser** inside the headset, navigate to that URL, and click **"Enter AR"**!
-
-### Building and Publishing to GitHub Pages
-- **Automatic (CI/CD)**: Any push to `main` triggering `.github/workflows/deploy-pages.yml` automatically tests, builds, and publishes to GitHub Pages.
-- **Manual from Desktop**:
-  ```bash
-  cd panther-builder
-  npm run deploy
-  ```
-  This builds the production bundle and pushes it to the `gh-pages` branch.
-
-### Automated Testing
-```bash
-cd panther-builder
-npm test
-```
-Runs unit tests validating scale calculations, boundary limits, and material presets.
+### Publishing
+- **Automatic:** every push to `main` runs `.github/workflows/deploy-pages.yml`, which tests, builds and deploys to GitHub Pages (Repo **Settings -> Pages -> Source: GitHub Actions**).
+- **Manual:** `npm run deploy` builds `dist/` and pushes it to the `gh-pages` branch (then set Pages to *Deploy from a branch -> gh-pages*).
 
 ---
 
-## Project 2: GolfVR - 9-Hole Championship Mini Golf (`GolfVR/GolfVR/`)
+## Project 2: GolfVR (`GolfVR/GolfVR/`)
 
-A complete 9-hole miniature golf course in Unity built with the *Stylized Mini Golf* asset kit and SteamVR. All 9 holes are grounded flush on the indoor hall floor (`Y = 0.0`) with borders, realistic colliders, audio effects, and VR teleportation.
+A VR mini-golf and golf-practice experience in **Unity 2022.3.62f3** with **SteamVR**, built for the **HTC Vive Pro** (Vive wand controllers). Full technical notes, testing tools and the list of bugs found/fixed are in [`GolfVR/GolfVR/Docs/README.md`](GolfVR/GolfVR/Docs/README.md).
 
-### Complete 9-Hole Course Card (Par 26)
-| Hole | Name | Par | Features & Obstacles | Coordinates |
-| :--- | :--- | :---: | :--- | :--- |
-| **1** | **Panther Straightaway** | 2 | Clean intro straightaway with side containment bumpers | Tee `[-10, 0, 10]`, Cup `[-6, 0, 10]` |
-| **2** | **Chicane Wave** | 3 | S-curve fairway with banked edge rails | Tee `[-10, 0, 6]`, Cup `[-6, 0, 6]` |
-| **3** | **Panther Wedge** | 3 | Triangular wedge obstacle splitting the fairway | Tee `[-10, 0, 2]`, Cup `[-6, 0, 2]` |
-| **4** | **Gateway Bumpers** | 3 | Dual twin bumper slalom gates | Tee `[-2, 0, 6]`, Cup `[2, 0, 6]` |
-| **5** | **Slalom Chicane** | 3 | Cross obstacle puzzle requiring bank rebound | Tee `[6, 0, 6]`, Cup `[10, 0, 6]` |
-| **6** | **The Zippo Flame** | 3 | **Historic Bradford Zippo Lighter Monument** + Bumper pin hazard | Tee `[-2, 0, 0]`, Cup `[2, 0, 0]` |
-| **7** | **Dogleg Corner** | 3 | 90-degree dogleg turn with banked corner tile | Tee `[6, 0, 2]`, Cup `[8, 0, -2]` |
-| **8** | **The Windmill Hazard** | 3 | Rotating animated windmill blades obstacle | Tee `[-2, 0, -6]`, Cup `[2, 0, -6]` |
-| **9** | **Grand Finale: Panther's Roar** | 4 | **Authentic Pitt Panther Statue Monument** centerpiece + L-wrap green | Tee `[6, 0, -6]`, Cup `[10, 0, -10]` |
+### What's in it
+Everything is launched from a **main menu** (`MainMenu.unity`, first scene in Build Settings). Push a button with your hand to pick:
 
-### Lab Hardware & Software Prerequisites
-- **Unity Editor**: `2022.3.62f3 LTS` (recommended) or `6000.3.20f1`.
-- **SteamVR**: Installed and running on the VR workstation.
-- **Headset**: Meta Quest 2 / 3 / Pro (via Quest Link cable or AirLink), or Valve Index / HTC Vive Cosmos.
+| Menu button | Scene | What it is |
+| :--- | :--- | :--- |
+| ICARUS 9 holes | `ICARUS_v1` | The full 9-hole course. **Every hole has its own ball** waiting at its tee; scores per hole, fireworks + horns on every hole sunk, scoreboard that follows you, NEXT HOLE buttons at every tee, a staff reset kiosk and a "pick a hole" test panel |
+| ICARUS 2 holes | `ICARUS_TwoHole_v1` | Holes 1 and 2 only, with an invisible fence and invisible walls around the fairways |
+| New Sample | `New_Sample` | Sample / experimental scene |
+| Dom v4 | `Dom_v4` | Dom's scene |
+| Driving range | `ICARUS_DrivingRange_v1` | Hit a driver off a tee: 3D ball flight with a coloured trail, carry + total distance in yards/metres, a history board, and a fresh ball after every shot |
 
-### Opening & Testing in the Unity Editor
-1. Launch **Unity Hub**.
-2. Click **Add** -> **Add project from disk** -> Navigate to `c:\GitHub\Alumni-Weekend-2026\Alumni-Weekend-2026\GolfVR\GolfVR`.
-3. Open the project using Unity `2022.3` LTS.
-4. In the Project window, double-click:
-   ```
-   Assets/Scenes/MiniGolf_AlumniCourse.unity
-   ```
-5. Ensure **SteamVR** is running and your VR headset status shows green (Ready).
-6. Click the **Play** button at the top of the Unity Editor.
-7. Grab the putter with your VR controller trigger and begin putting!
+### Controls (Vive wand)
+| Input | Action |
+| :--- | :--- |
+| **Grip** | Pick up the putter / driver. It then **stays stuck to your hand** (no need to keep squeezing) |
+| **Trigger** | Push buttons / interact |
+| **Trackpad - center** | Teleport |
+| **Trackpad - right edge** | While holding the club: cycle the club angle (remembered). Otherwise: snap the putter to you |
+| **Trackpad - left edge** | Reset the ball in front of you |
+| **MENU button (three lines above the trackpad) - press and hold ~0.7 s** | **Return to the main menu from any scene** |
+| Hold **both grips** for 2.5 s | Backup way back to the menu |
+| `Esc` (in the Unity Editor) | Back to the menu |
 
-### Building a Standalone Windows VR Executable (.exe)
-To create a high-performance standalone build that runs without launching the Unity Editor:
-1. In Unity, go to **File** -> **Build Settings...**
-2. In **Scenes In Build**, verify `Assets/Scenes/MiniGolf_AlumniCourse.unity` is listed and checked at Index 0.
-3. In **Platform**, select **Windows, Mac, Linux** (Architecture: `Intel 64-bit`).
-4. Click **Build and Run** (or **Build**).
-5. Choose or create a folder: `GolfVR/Builds/AlumniMiniGolf/`.
-6. Unity compiles the standalone player `AlumniMiniGolf.exe`.
-7. Put on the VR headset, launch `AlumniMiniGolf.exe`, and play.
+Push-buttons are pressed by poking them with your hand. On the course, the **red reset kiosk** near the start sends all balls back to their tees, clears the scores and puts the putter back on its table; the **hole panel** next to it jumps to any hole (and resets that hole's ball and putter); the small **NEXT HOLE post at each tee** moves you to the next tee without resetting anything.
 
-### Automated Logic & Physics Testing
-To run the automated course simulation suite (validating cup detection, scoring terms, stroke counters, audio synthesis, and putter physics):
+### Setup on the VR PC
+- Windows PC with **SteamVR** installed and the **Vive Pro** working (SteamVR status green).
+- **Unity Hub** with Editor **2022.3.62f3**.
+
+### Running it from the Unity Editor
+1. Unity Hub -> **Add project from disk** -> select the `GolfVR/GolfVR` folder -> open with 2022.3.62f3.
+2. Open **`Assets/Scenes/MainMenu.unity`** (all scenes are already listed in *File -> Build Settings*).
+3. Start SteamVR, put the headset on, and press **Play**.
+4. Push a menu button to pick an experience. To come back, press and hold the MENU button.
+
+To try a single scene directly, open it (e.g. `ICARUS_v1`) and press Play - the hold-MENU return still works, but you need the menu scene listed in Build Settings (it is).
+
+### Building a standalone Windows player
+1. **File -> Build Settings**: confirm `MainMenu` is index 0 and the other scenes are checked.
+2. Platform **Windows, Mac, Linux**, architecture **x86_64** -> **Build** into e.g. `GolfVR/Builds/AlumniMiniGolf/`.
+3. Start SteamVR, then run the built `.exe`.
+
+### Automated tests (no headset needed)
+The project ships editor tests that run in Unity batch mode and are also available in the Editor under **Tools -> GolfVR** (real-physics putt and drive tests, grip geometry, hole/menu checks, and more). To run one headlessly:
 ```bash
-python test_golf_logic.py
+unity run GolfVR/GolfVR --editor-version 2022.3.62f3 -- -executeMethod GolfVR.EditorTools.PhysicsPuttTest.Run -logFile out.log
 ```
-Expected output:
-```
-Running GolfVR test suite...
-[PASS] test_score_terms passed
-[PASS] test_nine_hole_round passed (Total strokes: 26, Par: 26, Diff: 0)
-[PASS] test_physics_impulse passed
-[PASS] test_fanfare_audio_synthesis passed
-[PASS] test_putt_audio_synthesis passed
-ALL TESTS PASSED SUCCESSFULLY!
-```
+The list of tests and what each checks is in [`GolfVR/GolfVR/Docs/README.md`](GolfVR/GolfVR/Docs/README.md). (`test_golf_logic.py` in the repo root is an older stand-alone simulation of the original scoring rules and is no longer maintained.)
 
----
-
-## Troubleshooting in the VR Lab
-
-- **SteamVR shows "Headset Not Detected"**: Unplug and replug the USB-C Link cable, confirm Quest Link is enabled inside the Quest headset settings, and restart SteamVR.
-- **Controller Putter Not Grabbing**: Point controller at the putter handle and squeeze the grip or trigger button.
-- **Teleportation**: Use the thumbstick forward/arc teleportation to jump across the hall and position yourself at any hole's tee area.
-- **Lighting / Shader Warnings**: Clean baked GI configuration with version-compatible LightingData reference ensures clean loading with zero console errors.
+### Troubleshooting
+- **SteamVR shows "Headset not detected"** - check the Vive Pro link box/cables, restart SteamVR, then press Play again.
+- **Can't pick up the putter** - reach for the shaft and squeeze the **grip**. If the club feels tilted wrong, press the **trackpad right edge** while holding it to cycle the angle.
+- **The MENU button does nothing** - SteamVR may be using an old saved binding for this app. Open SteamVR's controller-binding screen for the app and reset to the default binding.
+- **A menu button says the scene isn't in Build Settings** - add the scene under *File -> Build Settings*.
+- **Ball doesn't go in the hole** - it must actually drop into the cup; a slow ball near the cup is gently pulled in.
