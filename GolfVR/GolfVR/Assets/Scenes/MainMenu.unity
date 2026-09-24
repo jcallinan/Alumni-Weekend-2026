@@ -1032,7 +1032,8 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 654520937}
-  m_Text: 'In any scene: hold BOTH grip buttons for 2.5 s to come back here'
+  m_Text: 'In any scene: press and hold the MENU button (three lines) to come back
+    here'
   m_OffsetZ: 0
   m_CharacterSize: 0.022
   m_LineSpacing: 1

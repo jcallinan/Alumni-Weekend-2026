@@ -10,7 +10,8 @@ namespace GolfVR
     /// (RuntimeInitializeOnLoadMethod), survives scene loads
     /// (DontDestroyOnLoad), and does nothing while the menu itself is showing.
     ///
-    /// Gesture: HOLD BOTH GRIP BUTTONS at the same time for a few seconds. A
+    /// Press and briefly HOLD the MENU button (the three-line button above the
+    /// trackpad) on either Vive controller. Backup gesture: HOLD BOTH GRIP BUTTONS at the same time for a few seconds. A
     /// small message in front of the headset counts it down, so it can't happen
     /// by accident (holding one grip -- as when carrying the club -- does
     /// nothing). In the Editor, Escape also returns to the menu.
@@ -22,6 +23,11 @@ namespace GolfVR
         [Tooltip("Seconds both grips must be held")]
         public float holdSeconds = 2.5f;
 
+        [Tooltip("Seconds the Vive MENU button (the three-line button above the trackpad) must be held")]
+        public float menuHoldSeconds = 0.7f;
+
+        private SteamVR_Action_Boolean _menu;
+        private float _menuHeld;
         private SteamVR_Action_Boolean _grip;
         private bool _lookedUp;
         private float _held;
@@ -60,7 +66,30 @@ namespace GolfVR
                 _lookedUp = true;
                 try { _grip = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("GrabGrip"); }
                 catch { _grip = null; }
+                try { _menu = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("Menu"); }
+                catch { _menu = null; }
             }
+
+            // The Vive MENU button (three lines): a short hold on either controller.
+            bool menuDown = false;
+            if (_menu != null)
+            {
+                try { menuDown = _menu.GetState(SteamVR_Input_Sources.Any); }
+                catch { menuDown = false; }
+            }
+
+            if (menuDown)
+            {
+                _menuHeld += Time.unscaledDeltaTime;
+                if (_menuHeld >= menuHoldSeconds)
+                {
+                    GoToMenu();
+                    return;
+                }
+                SetHud("Returning to menu...");
+                return;
+            }
+            _menuHeld = 0f;
 
             bool both = false;
             if (_grip != null)
