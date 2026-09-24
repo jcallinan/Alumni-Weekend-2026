@@ -7,7 +7,7 @@ This repository holds two interactive Virtual / Mixed Reality showcases built fo
 | Project | What it is | Runs on |
 | :--- | :--- | :--- |
 | [`panther-builder/`](panther-builder/) | **Panther Customizer** - a WebXR / 3D web app that puts the campus Panther statue in your room and lets you change its finish and size | Any WebXR headset browser (Meta Quest Browser), or a desktop browser |
-| [`GolfVR/GolfVR/`](GolfVR/GolfVR/) | **VR Mini Golf + Driving Range** - a Unity / SteamVR experience with a 9-hole course, a 2-hole variant, a driving range and a main menu | Windows PC + SteamVR, tested with an **HTC Vive Pro** and Vive wand controllers |
+| [`GolfVR/GolfVR/`](GolfVR/GolfVR/) | **VR Mini Golf + Driving Range** - a Unity / SteamVR experience with a 9-hole course, a 2-hole variant, a driving range, and keyboard scene switching | Windows PC + SteamVR, tested with an **HTC Vive Pro** and Vive wand controllers |
 
 ---
 
@@ -48,15 +48,16 @@ The dev server uses a self-signed certificate; accept the browser warning once (
 A VR mini-golf and golf-practice experience in **Unity 2022.3.62f3** with **SteamVR**, built for the **HTC Vive Pro** (Vive wand controllers). Full technical notes, testing tools and the list of bugs found/fixed are in [`GolfVR/GolfVR/Docs/README.md`](GolfVR/GolfVR/Docs/README.md).
 
 ### What's in it
-Everything is launched from a **main menu** (`MainMenu.unity`, first scene in Build Settings). It is a plain flat screen with buttons you **click with the mouse** (no VR needed for the menu); pick:
+The app **starts in `ICARUS_v1`**. From the keyboard (the PC's keyboard, with the game window focused) you can switch scene at any time - the key list also shows on the monitor for a few seconds after each scene loads (`H` hides/shows it):
 
-| Menu button | Scene | What it is |
+| Key | Scene | What it is |
 | :--- | :--- | :--- |
-| ICARUS 9 Hole Course | `ICARUS_v1` | The full 9-hole course. **Every hole has its own ball** waiting at its tee; scores per hole, fireworks + horns on every hole sunk, scoreboard that follows you, NEXT HOLE buttons at every tee, a staff reset kiosk and a "pick a hole" test panel |
-| ICARUS 2 Hole Course | `ICARUS_TwoHole_v1` | Holes 1 and 2 only, with an invisible fence and invisible walls around the fairways |
-| New Sample | `New_Sample` | Sample / experimental scene |
-| Dom v4 | `Dom_v4` | Dom's scene |
-| Driving range | `ICARUS_DrivingRange_v1` | Hit a driver off a tee: 3D ball flight with a coloured trail, carry + total distance in yards/metres, a history board, and a fresh ball after every shot |
+| **1** | `ICARUS_v1` (start scene) | The full 9-hole course. **Every hole has its own ball** waiting at its tee; scores per hole, fireworks + horns on every hole sunk, scoreboard that follows you, NEXT HOLE buttons at every tee, a staff reset kiosk and a "pick a hole" test panel |
+| **2** | `ICARUS_TwoHole_v1` | Holes 1 and 2 only, with an invisible fence and invisible walls around the fairways |
+| **3** | `New_Sample` | Sample / experimental scene |
+| **4** | `Dom_v4` | Dom's scene |
+| **5** | `ICARUS_DrivingRange_v1` | Hit a driver off a tee: 3D ball flight with a coloured trail, carry + total distance in yards/metres, a history board, and a fresh ball after every shot |
+| **Esc** | - | Quit (stops Play mode in the Unity Editor) |
 
 ### Controls (Vive wand)
 | Input | Action |
@@ -66,9 +67,7 @@ Everything is launched from a **main menu** (`MainMenu.unity`, first scene in Bu
 | **Trackpad - center** | Teleport |
 | **Trackpad - right edge** | While holding the club: cycle the club angle (remembered). Otherwise: snap the putter to you |
 | **Trackpad - left edge** | Reset the ball in front of you |
-| **MENU button (three lines above the trackpad) - press and hold ~0.7 s** | **Return to the main menu from any scene** |
-| Hold **both grips** for 2.5 s | Backup way back to the menu |
-| `Esc` (in the Unity Editor) | Back to the menu |
+| Keyboard `1`-`5` / `Esc` | Switch scene / quit (see above) |
 
 Push-buttons are pressed by poking them with your hand. On the course, the **red reset kiosk** near the start sends all balls back to their tees, clears the scores and puts the putter back on its table; the **hole panel** next to it jumps to any hole (and resets that hole's ball and putter); the small **NEXT HOLE post at each tee** moves you to the next tee without resetting anything.
 
@@ -78,19 +77,19 @@ Push-buttons are pressed by poking them with your hand. On the course, the **red
 
 ### Running it from the Unity Editor
 1. Unity Hub -> **Add project from disk** -> select the `GolfVR/GolfVR` folder -> open with 2022.3.62f3.
-2. Open **`Assets/Scenes/MainMenu.unity`** (all scenes are already listed in *File -> Build Settings*).
+2. Open **`Assets/Scenes/ICARUS_v1.unity`** (all scenes are already listed in *File -> Build Settings*, with ICARUS_v1 first).
 3. Start SteamVR, put the headset on, and press **Play**.
-4. Click a menu button with the mouse to pick an experience (the menu shows on the monitor, not in the headset). To come back, press and hold the MENU button on a controller, or press Esc.
+4. Play. Click the Game window once so it has keyboard focus, then press **1-5** to switch scene or **Esc** to quit.
 
-To try a single scene directly, open it (e.g. `ICARUS_v1`) and press Play - the hold-MENU return still works, but you need the menu scene listed in Build Settings (it is).
+Any scene can be opened directly and played the same way; the number keys work from whichever scene is running.
 
 ### Building a standalone Windows player
-1. **File -> Build Settings**: confirm `MainMenu` is index 0 and the other scenes are checked.
+1. **File -> Build Settings**: confirm `ICARUS_v1` is index 0 and the other scenes are checked (the 1-5 keys need them all enabled).
 2. Platform **Windows, Mac, Linux**, architecture **x86_64** -> **Build** into e.g. `GolfVR/Builds/AlumniMiniGolf/`.
 3. Start SteamVR, then run the built `.exe`.
 
 ### Automated tests (no headset needed)
-The project ships editor tests that run in Unity batch mode and are also available in the Editor under **Tools -> GolfVR** (real-physics putt and drive tests, grip geometry, hole/menu checks, and more). To run one headlessly:
+The project ships editor tests that run in Unity batch mode and are also available in the Editor under **Tools -> GolfVR** (real-physics putt and drive tests, grip geometry, hole and scene-switch checks, and more). To run one headlessly:
 ```bash
 unity run GolfVR/GolfVR --editor-version 2022.3.62f3 -- -executeMethod GolfVR.EditorTools.PhysicsPuttTest.Run -logFile out.log
 ```
@@ -99,6 +98,5 @@ The list of tests and what each checks is in [`GolfVR/GolfVR/Docs/README.md`](Go
 ### Troubleshooting
 - **SteamVR shows "Headset not detected"** - check the Vive Pro link box/cables, restart SteamVR, then press Play again.
 - **Can't pick up the putter** - reach for the shaft and squeeze the **grip**. If the club feels tilted wrong, press the **trackpad right edge** while holding it to cycle the angle.
-- **The MENU button does nothing** - SteamVR may be using an old saved binding for this app. Open SteamVR's controller-binding screen for the app and reset to the default binding.
-- **A menu button says the scene isn't in Build Settings** - add the scene under *File -> Build Settings*.
+- **Number keys do nothing** - click the Game window first so it has keyboard focus. If a key says a scene is "not in Build Settings", add it under *File -> Build Settings*.
 - **Ball doesn't go in the hole** - it must actually drop into the cup; a slow ball near the cup is gently pulled in.
