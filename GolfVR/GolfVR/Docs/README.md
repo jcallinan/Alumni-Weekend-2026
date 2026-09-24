@@ -132,3 +132,9 @@ A separate scene forked from ICARUS_v1 with the golf course stripped out: a long
 - **Test**: `Tools/GolfVR/Driving Range Test` (`GolfVR.EditorTools.DrivingRangeTest.Run`) swings at five speeds with synthetic head positions, flies the ball under real physics and checks landing/roll/stop, distances, history, respawn and clear.
 
 Not verified without a headset: the feel of a real swing (sweep hit detection vs. controller tracking), and whether the 1.3 boost / ball-speed numbers feel right -- `swingBoost`, `smashFactor` and `loftDegrees` on the club are the knobs.
+
+## Main menu (`MainMenu.unity`)
+
+A menu scene (first in Build Settings) with five push-button posts in an arc around the player: ICARUS 9 holes, ICARUS 2 holes, New_Sample, Dom_v4 and the Driving Range (`SceneLoadButton` -> `SceneManager.LoadScene`). Scenes must be enabled in Build Settings; `Tools/GolfVR/Main Menu Test` checks that every button's scene exists and is enabled.
+
+**Back to the menu from any scene:** `SceneMenuReturn` creates itself at startup, survives scene loads, and needs nothing added to a scene. Hold **both grip buttons for 2.5 s** (a countdown appears in front of the headset; holding one grip while carrying the club does nothing). In the Editor, **Escape** also returns. To add another scene to the menu, add it to Build Settings and add a menu button whose `sceneName` matches.
