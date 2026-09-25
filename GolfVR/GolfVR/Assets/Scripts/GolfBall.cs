@@ -16,10 +16,10 @@ namespace GolfVR
         public float stopVelocityThreshold = 0.08f;
 
         [Tooltip("Rolling drag applied while moving")]
-        public float rollingDrag = 0.15f;
+        public float rollingDrag = 0.25f;
 
         [Tooltip("Angular drag applied while rolling")]
-        public float rollingAngularDrag = 0.15f;
+        public float rollingAngularDrag = 0.25f;
 
         [Header("Course Rules")]
         [Tooltip("Y position below which the ball is marked Out Of Bounds")]

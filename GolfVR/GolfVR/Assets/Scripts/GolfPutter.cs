@@ -18,13 +18,13 @@ namespace GolfVR
         [Header("Striking Physics")]
         [Tooltip("Multiplier applied to swing velocity when striking the ball")]
         [Range(1.0f, 5.0f)]
-        public float powerMultiplier = 2.2f;
+        public float powerMultiplier = 1.2f;
 
         [Tooltip("Minimum club head speed required to register a putt stroke")]
         public float minSwingSpeed = 0.15f;
 
         [Tooltip("Maximum velocity that can be imparted on the ball")]
-        public float maxBallSpeed = 15.0f;
+        public float maxBallSpeed = 5.0f;
 
         [Header("SteamVR / Haptics")]
         [Tooltip("Duration of haptic buzz in seconds on ball strike")]

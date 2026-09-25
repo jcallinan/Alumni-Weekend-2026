@@ -53,6 +53,10 @@ namespace GolfVR
         public Color gripColor = new Color(0.05f, 0.05f, 0.05f);
         public Color headColor = new Color(0.10f, 0.10f, 0.12f);
 
+        [Header("Presentation")]
+        [Tooltip("Keep the club floating upright (kinematic) at its starting pose until it's picked up, so it is easy to grab without stooping or walking to a table")]
+        public bool floatWhenIdle = true;
+
         [Header("Grip Pose")]
         [Tooltip("Degrees the shaft leans forward while held. While holding the club, the SnapTurnRight button cycles the presets and the choice is remembered.")]
         public float gripPitchDegrees = 20f;
@@ -109,6 +113,7 @@ namespace GolfVR
 
             gripPitchDegrees = PlayerPrefs.GetFloat(GripPitchPrefKey, gripPitchDegrees);
             ApplyGripPose();
+            if (floatWhenIdle) Freeze();
             GenerateHitClip();
             BuildVisualsIfMissing();
         }
@@ -143,19 +148,47 @@ namespace GolfVR
 
         private void Update()
         {
-            if (_hand == null) return;
-
-            if (_cycleAction == null && !_cycleActionLookedUp)
+            if (_hand == null)
             {
-                _cycleActionLookedUp = true;
-                try { _cycleAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("SnapTurnRight"); }
-                catch { _cycleAction = null; }
+                // Not in a hand: trackpad right edge brings the club to you.
+                if (!_cycleActionLookedUp) LookUpCycleAction();
+                if (_cycleAction != null && _cycleAction.GetStateDown(SteamVR_Input_Sources.Any)) SnapToPlayer();
+                return;
             }
+
+            if (!_cycleActionLookedUp) LookUpCycleAction();
 
             if (_cycleAction != null && _cycleAction.GetStateDown(SteamVR_Input_Sources.Any))
             {
                 CycleGripPitch();
             }
+        }
+
+        private void LookUpCycleAction()
+        {
+            _cycleActionLookedUp = true;
+            try { _cycleAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("SnapTurnRight"); }
+            catch { _cycleAction = null; }
+        }
+
+        /// <summary>Puts the club upright right in front of the player, ready to grab.</summary>
+        public void SnapToPlayer()
+        {
+            if (Player.instance == null || IsHeld) return;
+
+            Vector3 pos = Player.instance.feetPositionGuess
+                        + Player.instance.bodyDirectionGuess.normalized * 0.5f
+                        + Vector3.up * 0.15f;
+            ResetToPosition(pos, Quaternion.identity);
+            if (floatWhenIdle) Freeze();
+        }
+
+        private void Freeze()
+        {
+            if (_rigidbody == null) _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody.velocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.isKinematic = true;
         }
 
         // The club is parented to the hand, whose pose updates in Update, so the
@@ -340,6 +373,7 @@ namespace GolfVR
         {
             ReleaseFromHand();
             if (_hasHome) ResetToPosition(_homePosition, _homeRotation);
+            if (floatWhenIdle) Freeze();
         }
 
         public void ResetToPosition(Vector3 position, Quaternion rotation)

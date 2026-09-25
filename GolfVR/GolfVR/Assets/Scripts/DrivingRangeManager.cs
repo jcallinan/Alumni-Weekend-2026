@@ -113,6 +113,9 @@ namespace GolfVR
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             rb.maxAngularVelocity = 200f;
 
+            // The teleport pointer should pass over balls rather than turning red on them.
+            go.AddComponent<Valve.VR.InteractionSystem.IgnoreTeleportTrace>();
+
             RangeBall ball = go.AddComponent<RangeBall>();
             ball.shotNumber = ++_shotCounter;
 

@@ -68,7 +68,7 @@ namespace GolfVR
         public float captureRadius = 0.30f;
 
         [Tooltip("Balls faster than this (m/s) inside the capture radius skip over the cup instead of being pulled in")]
-        public float captureMaxSpeed = 2.0f;
+        public float captureMaxSpeed = 3.0f;
 
         [Tooltip("Pull strength (m/s^2) toward the cup center while a slow ball is inside the capture radius")]
         public float capturePull = 4.0f;
