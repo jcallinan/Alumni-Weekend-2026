@@ -26,6 +26,8 @@ These are also shown in-course on the "HOW TO PLAY" sign near Hole 1.
 - **Reset-for-next-group kiosk**: a physical push-button near the entrance plaza (`ResetRoundButton`, built on SteamVR's own proven push-button interaction rather than a hand-rolled one) lets event staff reset the whole round — scores, ball, and putter all snapped back to Hole 1 — between groups without relaunching the app.
 - **"Pick a hole" testing panel**: right next to the reset kiosk, a 3x3 grid of 9 small buttons jumps straight to any hole (`JumpToHoleButton` → `MiniGolfGameManager.JumpToHole`), for testing a specific hole without playing through every one before it. Pressing the button for whichever hole is already active also works as a "put the ball and putter back" reset for just that hole. A 10th orange "FW" button plays the fireworks celebration directly (`TestFireworksButton`), so the show can be checked independently of the putter/sink working correctly.
 
+> **Every scene:** see [SCENES.md](SCENES.md) for a gallery of all five scenes (regenerate with `Tools/GolfVR/Capture Scene Gallery`, `GolfVR.EditorTools.SceneGalleryScreenshots.Run`).
+
 ## Screenshots
 
 **Course overview**
